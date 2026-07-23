@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "@/types/database";
 
@@ -11,6 +11,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export function createBrowserSupabase(): SupabaseClient<Database, "public", "public"> {
-  return createClient<Database, "public", "public">(supabaseUrl, supabaseAnonKey);
+export function createBrowserSupabase() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 }

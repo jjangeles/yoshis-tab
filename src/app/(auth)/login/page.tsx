@@ -17,7 +17,8 @@ export default function LoginPage() {
     setError(null);
 
     const supabase = createBrowserSupabase();
-    const { error } = await supabase.auth.signInWithPassword({
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -29,7 +30,10 @@ export default function LoginPage() {
       return;
     }
 
+    console.log("Login session:", data.session);
+
     router.push("/dashboard");
+    router.refresh();
   };
 
   return (
