@@ -52,36 +52,43 @@ export default function ReceiptParseClient({ receiptId }: ReceiptParseClientProp
   };
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-4 pb-10">
+      <div className="flex items-center justify-between gap-3 rounded-[2rem] bg-white/95 px-4 py-4 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
+        <div>
+          <p className="text-base font-semibold text-slate-950 dark:text-slate-50">Parse receipt</p>
+          <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">Extract items from the receipt image.</p>
+        </div>
         <button
           type="button"
           disabled={parsing}
           onClick={handleParse}
-          className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-12 items-center justify-center rounded-3xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
         >
-          {parsing ? "Parsing receipt..." : "Parse Receipt"}
+          {parsing ? "Parsing..." : "Parse"}
         </button>
       </div>
 
       {parseError ? (
-        <div className="mt-6 rounded-2xl bg-red-50 p-4 text-sm text-red-700">{parseError}</div>
+        <div className="rounded-3xl bg-red-50 px-4 py-4 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">
+          {parseError}
+        </div>
       ) : null}
 
       {items.length > 0 ? (
-        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-950">Parsed items</h2>
-          <div className="mt-4 space-y-3">
-            {items.map((item, index) => (
-              <div key={index} className="rounded-2xl bg-slate-50 p-4">
-                <div className="flex justify-between gap-4 text-sm text-slate-700">
-                  <span>{item.name}</span>
-                  <span>{item.quantity} × {item.unit_price.toFixed(2)}</span>
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div key={index} className="rounded-[1.8rem] bg-slate-100 px-4 py-4 dark:bg-slate-800">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-base font-semibold text-slate-950 dark:text-slate-50">{item.name}</p>
+                  <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    Qty {item.quantity} • {item.unit_price.toFixed(2)} each
+                  </p>
                 </div>
-                <div className="mt-2 text-base font-semibold text-slate-950">{item.total_price.toFixed(2)}</div>
+                <p className="text-base font-semibold text-slate-950 dark:text-slate-50">{item.total_price.toFixed(2)}</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       ) : null}
     </div>

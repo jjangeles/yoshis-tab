@@ -6,10 +6,10 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   const user = await getCurrentUser();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        {children}
+      <main className="mx-auto max-w-3xl px-0 py-6 sm:px-0">
+        <div className="px-5">{children}</div>
       </main>
     </div>
   );

@@ -3,8 +3,6 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import type { Database } from "@/types/database";
-import Container from "@/components/ui/Container";
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -171,127 +169,140 @@ export default function NewReceiptPage() {
   };
 
   return (
-    <Container>
-      <div className="mx-auto max-w-3xl py-20">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-3xl font-semibold text-slate-950">Create Receipt</h1>
-          <form onSubmit={handleSubmit} className="mt-8 grid gap-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Receipt image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 file:mr-4 file:rounded-full file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:text-white"
+    <div className="min-h-screen bg-slate-50 px-5 py-10 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
+      <main className="mx-auto w-full max-w-md space-y-6">
+        <section className="space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+            New receipt
+          </p>
+          <h1 className="text-3xl font-semibold">Create receipt</h1>
+          <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
+            Upload a receipt image and capture the totals for later splitting.
+          </p>
+        </section>
+
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-[2rem] bg-white/95 p-6 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Receipt image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:text-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
+            />
+          </div>
+
+          {previewUrl ? (
+            <div className="rounded-3xl bg-slate-100 p-4 dark:bg-slate-800">
+              <p className="text-sm text-slate-600 dark:text-slate-400">Preview</p>
+              <img
+                src={previewUrl}
+                alt="Receipt preview"
+                className="mt-3 w-full rounded-3xl object-contain"
               />
             </div>
-            {previewUrl ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm text-slate-600">Preview</p>
-                <img
-                  src={previewUrl}
-                  alt="Receipt preview"
-                  className="mt-3 max-h-80 w-full object-contain rounded-2xl"
-                />
-              </div>
-            ) : null}
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Merchant name</label>
-                <input
-                  value={merchantName}
-                  onChange={(event) => setMerchantName(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Receipt date</label>
-                <input
-                  type="date"
-                  value={receiptDate}
-                  onChange={(event) => setReceiptDate(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-                />
-              </div>
+          ) : null}
+
+          <div className="grid gap-4">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Merchant name</label>
+            <input
+              value={merchantName}
+              onChange={(event) => setMerchantName(event.target.value)}
+              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Receipt date</label>
+              <input
+                type="date"
+                value={receiptDate}
+                onChange={(event) => setReceiptDate(event.target.value)}
+                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              />
             </div>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Subtotal</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={subtotal}
-                  onChange={(event) => setSubtotal(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Tax</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={tax}
-                  onChange={(event) => setTax(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Subtotal</label>
+              <input
+                type="number"
+                step="0.01"
+                value={subtotal}
+                onChange={(event) => setSubtotal(event.target.value)}
+                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              />
             </div>
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Service charge</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={serviceCharge}
-                  onChange={(event) => setServiceCharge(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700">Discount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={discount}
-                  onChange={(event) => setDiscount(event.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
-                />
-              </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Tax</label>
+              <input
+                type="number"
+                step="0.01"
+                value={tax}
+                onChange={(event) => setTax(event.target.value)}
+                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Total</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Service charge</label>
+              <input
+                type="number"
+                step="0.01"
+                value={serviceCharge}
+                onChange={(event) => setServiceCharge(event.target.value)}
+                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Discount</label>
+              <input
+                type="number"
+                step="0.01"
+                value={discount}
+                onChange={(event) => setDiscount(event.target.value)}
+                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Total</label>
               <input
                 type="number"
                 step="0.01"
                 value={total}
                 onChange={(event) => setTotal(event.target.value)}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900"
+                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
               />
             </div>
-            {uploadProgress > 0 ? (
-              <div className="rounded-2xl bg-slate-100 p-4">
-                <p className="text-sm text-slate-600">Upload progress</p>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
-                  <div
-                    className="h-full rounded-full bg-slate-950 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
+          </div>
+
+          {uploadProgress > 0 ? (
+            <div className="rounded-3xl bg-slate-100 p-4 dark:bg-slate-800">
+              <p className="text-sm text-slate-600 dark:text-slate-400">Upload progress</p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-slate-950 transition-all duration-300 dark:bg-slate-100"
+                  style={{ width: `${uploadProgress}%` }}
+                />
               </div>
-            ) : null}
-            {error ? (
-              <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-            ) : null}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? "Uploading receipt..." : "Create Receipt"}
-            </button>
-          </form>
-        </div>
-      </div>
-    </Container>
+            </div>
+          ) : null}
+          {error ? (
+            <p className="rounded-3xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{error}</p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex h-12 w-full items-center justify-center rounded-3xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+          >
+            {loading ? "Uploading receipt..." : "Create receipt"}
+          </button>
+        </form>
+      </main>
+    </div>
   );
 }

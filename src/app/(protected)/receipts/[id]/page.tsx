@@ -40,74 +40,80 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
   }
 
   return (
-    <Container>
-      <div className="mx-auto max-w-3xl py-20">
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <ReceiptParseClient receiptId={receipt.id} />
-
-          <div className="mt-8">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-3xl font-semibold text-slate-950">
+    <div className="space-y-6 pb-10 pt-4">
+      <section className="space-y-4">
+        <div className="rounded-[2rem] bg-white/95 px-5 py-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+            Receipt
+          </p>
+          <div className="mt-3 flex flex-col gap-3">
+            <div>
+              <h1 className="text-3xl font-semibold text-slate-950 dark:text-slate-50">
                 {receipt.merchant_name || "Untitled Receipt"}
               </h1>
-              <p className="text-sm leading-6 text-slate-600">
-                Receipt date: {receipt.receipt_date ? new Date(receipt.receipt_date).toLocaleDateString() : "N/A"}
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                {receipt.receipt_date ? new Date(receipt.receipt_date).toLocaleDateString() : "No receipt date"}
               </p>
-              <p className="text-sm leading-6 text-slate-600">Created at: {new Date(receipt.created_at).toLocaleDateString()}</p>
             </div>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Subtotal</p>
-                <p className="mt-2 text-xl font-semibold text-slate-950">{receipt.subtotal.toFixed(2)}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Subtotal</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.subtotal.toFixed(2)}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Tax</p>
-                <p className="mt-2 text-xl font-semibold text-slate-950">{receipt.tax.toFixed(2)}</p>
+              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Tax</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.tax.toFixed(2)}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Service charge</p>
-                <p className="mt-2 text-xl font-semibold text-slate-950">{receipt.service_charge.toFixed(2)}</p>
+              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Service charge</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.service_charge.toFixed(2)}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-sm text-slate-500">Discount</p>
-                <p className="mt-2 text-xl font-semibold text-slate-950">{receipt.discount.toFixed(2)}</p>
+              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Discount</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.discount.toFixed(2)}</p>
               </div>
             </div>
-
-            <div className="mt-10 rounded-2xl bg-slate-950 p-5 text-white">
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Total</p>
+            <div className="rounded-[2rem] bg-slate-950 px-4 py-5 text-white dark:bg-slate-50 dark:text-slate-950">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-300 dark:text-slate-500">Total</p>
               <p className="mt-2 text-3xl font-semibold">{receipt.total.toFixed(2)}</p>
-            </div>
-
-            <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-slate-950">Receipt items</h2>
-
-              {Array.isArray(receipt.receipt_items) && receipt.receipt_items.length > 0 ? (
-                <div className="mt-4 space-y-4">
-                  {receipt.receipt_items.map((item) => (
-                    <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-base font-semibold text-slate-950">{item.name || "Unnamed item"}</p>
-                          <p className="text-sm leading-6 text-slate-600">
-                            Quantity: {item.quantity} • Unit price: {item.unit_price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="text-sm font-semibold text-slate-950">Total: {item.total_price.toFixed(2)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-                  No receipt items were returned for this receipt.
-                </div>
-              )}
             </div>
           </div>
         </div>
-      </div>
-    </Container>
+
+        <div className="rounded-[2rem] bg-white/95 px-5 py-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-950 dark:text-slate-50">Receipt items</p>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                Parsed items for this receipt.
+              </p>
+            </div>
+          </div>
+
+          {Array.isArray(receipt.receipt_items) && receipt.receipt_items.length > 0 ? (
+            <div className="mt-4 space-y-3">
+              {receipt.receipt_items.map((item) => (
+                <div key={item.id} className="rounded-[1.5rem] bg-slate-100 px-4 py-4 dark:bg-slate-800">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-base font-semibold text-slate-950 dark:text-slate-50">{item.name || "Unnamed item"}</p>
+                      <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
+                        Qty {item.quantity} • {item.unit_price.toFixed(2)} each
+                      </p>
+                    </div>
+                    <p className="text-base font-semibold text-slate-950 dark:text-slate-50">{item.total_price.toFixed(2)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-[1.5rem] bg-slate-100 px-4 py-5 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              No receipt items were returned for this receipt.
+            </div>
+          )}
+        </div>
+      </section>
+      <ReceiptParseClient receiptId={receipt.id} />
+    </div>
   );
 }
