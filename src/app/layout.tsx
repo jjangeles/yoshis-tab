@@ -13,9 +13,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  themeColor: "#020617",
+};
+
 export const metadata: Metadata = {
-  title: "Split Receipt",
-  description: "Minimal mobile-native receipt splitting app",
+  title: "Yoshi's Tab",
+  description: "Bill sharing made easy",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Yoshi's Tab",
+  },
 };
 
 export default function RootLayout({

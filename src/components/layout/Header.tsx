@@ -5,7 +5,7 @@ import ThemeToggle from "@/components/theme/ThemeToggle";
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-700/80 dark:bg-slate-950/95">
+    <header className="sticky top-0 z-20 border-none border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-700/80 dark:bg-slate-950/95">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-4">
         <Link
           key='home'
@@ -15,7 +15,7 @@ export default function Header() {
             Yoshi's Tab
           </p>
           <p className="text-xs font-semibold tracking-[0.1em] text-slate-500 dark:text-slate-400">
-            Sharing made easy
+            Bill sharing made easy
           </p>
         </Link>
         <div className="flex items-center gap-2">
