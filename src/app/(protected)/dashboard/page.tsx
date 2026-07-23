@@ -23,7 +23,7 @@ export default async function DashboardPage() {
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
               Receipts
             </p>
             <h1 className="mt-1 text-3xl font-semibold text-slate-950 dark:text-slate-50">
@@ -48,15 +48,26 @@ export default async function DashboardPage() {
                 <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
                   {receipt.merchant_name || "Untitled Receipt"}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  {receipt.receipt_date ? new Date(receipt.receipt_date).toLocaleDateString() : "No date"}
+                <p className="text-xs leading-6 text-slate-500 dark:text-slate-600">
+                  {
+                    receipt.receipt_date
+                      ? new Date(receipt.receipt_date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "No date"
+                  }
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
-                  {receipt.total.toFixed(2)}
+                <p className="text-base text-xl font-semibold text-slate-950 dark:text-slate-50">
+                  ₱ {receipt.total.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Total</p>
+                {/* <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Total</p> */}
               </div>
             </Link>
           ))}

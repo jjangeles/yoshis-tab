@@ -43,39 +43,61 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
     <div className="space-y-6 pb-10 pt-4">
       <section className="space-y-4">
         <div className="rounded-[2rem] bg-white/95 px-5 py-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-            Receipt
-          </p>
-          <div className="mt-3 flex flex-col gap-3">
-            <div>
-              <h1 className="text-3xl font-semibold text-slate-950 dark:text-slate-50">
+          <div className="flex flex-col gap-3">
+            <div className="text-center">
+              <h1 className="text-xl font-semibold text-slate-950 dark:text-slate-50">
                 {receipt.merchant_name || "Untitled Receipt"}
               </h1>
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-400">
-                {receipt.receipt_date ? new Date(receipt.receipt_date).toLocaleDateString() : "No receipt date"}
+                {
+                  receipt.receipt_date
+                    ? new Date(receipt.receipt_date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "No date"
+                }
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+            <div className="grid gap-1 sm:grid-cols-2">
+              <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Subtotal</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.subtotal.toFixed(2)}</p>
+                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.subtotal.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}</p>
               </div>
-              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+              <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Tax</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.tax.toFixed(2)}</p>
+                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.tax.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}</p>
               </div>
-              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+              <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Service charge</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.service_charge.toFixed(2)}</p>
+                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.service_charge.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}</p>
               </div>
-              <div className="rounded-3xl bg-slate-100/80 p-4 dark:bg-slate-800/80">
+              <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Discount</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.discount.toFixed(2)}</p>
+                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.discount.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}</p>
               </div>
             </div>
-            <div className="rounded-[2rem] bg-slate-950 px-4 py-5 text-white dark:bg-slate-50 dark:text-slate-950">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-300 dark:text-slate-500">Total</p>
-              <p className="mt-2 text-3xl font-semibold">{receipt.total.toFixed(2)}</p>
+            <div className="text-center rounded-[1rem] bg-slate-950 p-2 text-white dark:bg-slate-50 dark:text-slate-950">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-300 dark:text-slate-500">Total</p>
+              <p className="mt-1 text-3xl font-semibold">
+                ₱ {receipt.total.toLocaleString("en-PH", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
             </div>
           </div>
         </div>
