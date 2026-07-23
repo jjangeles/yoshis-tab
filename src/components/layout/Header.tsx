@@ -9,7 +9,7 @@ export default function Header() {
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-4">
         <Link
           key='home'
-          href="/dashboard"
+          href="/"
         >
           <p className="mt-1 text-base text-lg font-semibold text-slate-950 dark:text-slate-50">
             Yoshi's Tab

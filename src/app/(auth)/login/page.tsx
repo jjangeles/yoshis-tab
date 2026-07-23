@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     console.log("Login session:", data.session);
 
-    router.push("/dashboard");
+    router.push("/");
     router.refresh();
   };
 
