@@ -22,7 +22,7 @@ export default function Header() {
           <Link href="/receipts/new" className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200">
             New
           </Link>
-          {/* <ThemeToggle /> */}
+          <ThemeToggle />
         </div>
       </div>
     </header>
