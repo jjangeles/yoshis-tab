@@ -33,6 +33,17 @@
   --color-card: #07102a;
 }
 
+html,
+body {
+  min-height: 100%;
+  background: #f8fafc;
+}
+
+.dark,
+.dark body {
+  background: #020617;
+}
+
 body {
   min-height: 100vh;
   margin: 0;
