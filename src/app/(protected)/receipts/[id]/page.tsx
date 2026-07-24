@@ -131,7 +131,6 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
           )}
         </div>
       </section>
-      <ReceiptParseClient receiptId={receipt.id} />
     </div>
   );
 }

@@ -20,7 +20,9 @@ export default function NewReceiptPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(90);
+  const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!imageFile) {
@@ -44,6 +46,38 @@ export default function NewReceiptPage() {
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const handleParse = async (receiptId: string) => {
+    setParseError(null);
+    setParsing(true);
+
+    try {
+      const response = await fetch(`/api/receipts/${receiptId}/parse`, {
+        method: "POST",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error || "Failed to parse receipt.");
+      }
+
+      const body = await response.json().catch(() => null);
+
+      if (!body?.success) {
+        throw new Error(body?.error || "Failed to parse receipt.");
+      }
+
+      return true;
+    } catch (error) {
+      setParseError(
+        error instanceof Error ? error.message : "Failed to parse receipt."
+      );
+      return false;
+    } finally {
+      setParsing(false);
     }
   };
 
@@ -167,14 +201,66 @@ export default function NewReceiptPage() {
       return;
     }
 
-    setUploadProgress(100);
+    setUploadProgress(0);
+
+    // Start parsing receipt
+    let parsed = false;
+    const attempts = 2;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      parsed = await handleParse(receiptId);
+
+      if (parsed) {
+        break;
+      }
+
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+
+    if (!parsed) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(false);
 
     router.push(`/receipts/${receiptId}`);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-5 py-10 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
+    <div className="relative min-h-screen bg-slate-50 px-5 py-10 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
+
+      {(loading || parsing) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-[90%] max-w-sm rounded-3xl bg-white p-6 shadow-xl dark:bg-slate-900">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold">
+                {parsing ? "Reading receipt" : "Uploading receipt"}
+              </h2>
+            </div>
+
+            {parsing ? (
+              <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                <div className="h-full w-full animate-pulse rounded-full bg-slate-950 dark:bg-slate-100" />
+              </div>
+            ) : (
+              <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-slate-950 transition-all duration-300 dark:bg-slate-100"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            )}
+
+            <p className="mt-4 text-center text-xs text-slate-400">
+              Please wait...
+            </p>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto w-full max-w-md space-y-6">
         <section className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
@@ -228,28 +314,17 @@ export default function NewReceiptPage() {
             </div>
           )}
 
-          {uploadProgress > 0 ? (
-            <div className="rounded-3xl bg-slate-100 p-4 dark:bg-slate-800">
-              <p className="text-sm text-slate-600 dark:text-slate-400">Upload progress</p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                <div
-                  className="h-full rounded-full bg-slate-950 transition-all duration-300 dark:bg-slate-100"
-                  style={{ width: `${uploadProgress}%` }}
-                />
-              </div>
-            </div>
-          ) : null}
           {error ? (
             <p className="rounded-3xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{error}</p>
           ) : null}
           {previewUrl ? (
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex h-12 w-full items-center justify-center rounded-3xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
-          >
-            {loading ? "Uploading receipt..." : "Upload receipt"}
-          </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex h-12 w-full items-center justify-center rounded-3xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            >
+              Upload receipt
+            </button>
           ): null}
         </form>
       </main>
