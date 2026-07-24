@@ -8,9 +8,10 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
       <Header />
-      <main className="mx-auto max-w-3xl px-0 py-6 sm:px-0">
+
+      <main className="mx-auto max-w-3xl px-0 py-3 pb-24 sm:px-0">
         <div className="px-5">{children}</div>
       </main>
-    </div>
+</div>
   );
 }
