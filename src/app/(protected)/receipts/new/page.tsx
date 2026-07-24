@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { Upload, X } from "lucide-react";
 
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -34,6 +35,17 @@ export default function NewReceiptPage() {
       URL.revokeObjectURL(url);
     };
   }, [imageFile]);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const removeImage = () => {
+    setImageFile(null);
+    setError(null);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -174,104 +186,47 @@ export default function NewReceiptPage() {
           </p>
         </section>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-[2rem] bg-white/95 p-6 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Receipt image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 file:mr-4 file:rounded-full file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:text-white dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50"
-            />
-          </div>
-
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-[2rem] p-6 shadow-sm shadow-slate-900/5 dark:shadow-none">
+          
           {previewUrl ? (
-            <div className="rounded-3xl bg-slate-100 p-4 dark:bg-slate-800">
-              <p className="text-sm text-slate-600 dark:text-slate-400">Preview</p>
+            <div className="relative">
               <img
                 src={previewUrl}
                 alt="Receipt preview"
-                className="mt-3 w-full rounded-3xl object-contain"
+                className="w-full rounded-xl object-contain"
               />
-            </div>
-          ) : null}
 
-          <div className="grid gap-4">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Merchant name</label>
-            <input
-              value={merchantName}
-              onChange={(event) => setMerchantName(event.target.value)}
-              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Receipt date</label>
-              <input
-                type="date"
-                value={receiptDate}
-                onChange={(event) => setReceiptDate(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
-              />
+              <button
+                type="button"
+                onClick={removeImage}
+                className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-red-500 text-white shadow-md transition hover:bg-red-700"
+                title="Remove image"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Subtotal</label>
+          ) : (
+            <div className="flex items-center justify-between max-w-[20rem] mx-auto">
               <input
-                type="number"
-                step="0.01"
-                value={subtotal}
-                onChange={(event) => setSubtotal(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
               />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex gap-2 w-full py-2 items-center justify-center rounded-[1rem] bg-slate-950 text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950"
+                title="Upload image"
+              >
+                <p>Select Image</p>
+                <div>
+                  <Upload size={20} />
+                </div>
+              </button>
             </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Tax</label>
-              <input
-                type="number"
-                step="0.01"
-                value={tax}
-                onChange={(event) => setTax(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Service charge</label>
-              <input
-                type="number"
-                step="0.01"
-                value={serviceCharge}
-                onChange={(event) => setServiceCharge(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Discount</label>
-              <input
-                type="number"
-                step="0.01"
-                value={discount}
-                onChange={(event) => setDiscount(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Total</label>
-              <input
-                type="number"
-                step="0.01"
-                value={total}
-                onChange={(event) => setTotal(event.target.value)}
-                className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
-              />
-            </div>
-          </div>
+          )}
 
           {uploadProgress > 0 ? (
             <div className="rounded-3xl bg-slate-100 p-4 dark:bg-slate-800">
@@ -287,13 +242,15 @@ export default function NewReceiptPage() {
           {error ? (
             <p className="rounded-3xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">{error}</p>
           ) : null}
+          {previewUrl ? (
           <button
             type="submit"
             disabled={loading}
             className="flex h-12 w-full items-center justify-center rounded-3xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
           >
-            {loading ? "Uploading receipt..." : "Create receipt"}
+            {loading ? "Uploading receipt..." : "Upload receipt"}
           </button>
+          ): null}
         </form>
       </main>
     </div>
