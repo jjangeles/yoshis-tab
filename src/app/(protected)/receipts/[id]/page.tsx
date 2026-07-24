@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
-import Container from "@/components/ui/Container";
 import ReceiptParseClient from "./ReceiptParseClient";
 
 interface ReceiptPageProps {
