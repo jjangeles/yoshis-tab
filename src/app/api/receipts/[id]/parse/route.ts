@@ -15,12 +15,6 @@ export async function POST(
     error: sessionError,
   } = await supabase.auth.getSession();
 
-  console.log("Parse route session check", {
-    receiptId,
-    sessionError,
-    userId: session?.user?.id,
-  });
-
   if (sessionError || !session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -44,23 +38,11 @@ export async function POST(
   }
 
   const storagePath = receipt.image_url;
-  console.log("Parse receipt signed URL request", {
-    receiptId,
-    ownerId: receipt.owner_id,
-    userId: session.user.id,
-    storagePath,
-  });
 
   const { data: signedUrlData, error: signedUrlError } =
     await supabase.storage
       .from("receipt-images")
       .createSignedUrl(storagePath, 60 * 10);
-
-  console.log("Signed URL response", {
-    storagePath,
-    signedUrlData,
-    signedUrlError,
-  });
 
   if (signedUrlError || !signedUrlData?.signedUrl) {
     return NextResponse.json(

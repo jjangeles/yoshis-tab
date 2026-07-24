@@ -30,8 +30,6 @@ export default function LoginPage() {
       return;
     }
 
-    console.log("Login session:", data.session);
-
     router.push("/");
     router.refresh();
   };

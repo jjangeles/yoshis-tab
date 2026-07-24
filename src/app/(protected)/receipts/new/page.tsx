@@ -143,13 +143,6 @@ export default function NewReceiptPage() {
       .select("id, image_url")
       .single();
 
-    console.log("Image URL update:", {
-      receiptId,
-      storagePath,
-      updateError,
-      updateData,
-    });
-
     if (updateError) {
       setError(updateError.message || "Failed to save receipt image URL.");
       setLoading(false);

@@ -7,16 +7,11 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   const supabase = await createServerSupabase();
 
-  console.log("Dashboard current user id:", user.id);
-
   const { data: receipts, error } = await supabase
     .from("receipts")
     .select("*")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
-
-  console.log("Dashboard receipts query result:", receipts);
-  console.log("Dashboard receipts query error:", error);
 
   return (
     <div className="space-y-6 pb-10 pt-4">

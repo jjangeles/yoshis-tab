@@ -26,9 +26,6 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
     .eq("id", id)
     .single() as { data: ReceiptWithItems | null; error: unknown };
 
-  console.log("Receipt detail data:", data);
-  console.log("Receipt detail receipt_items:", data?.receipt_items);
-
   if (error || !data) {
     return notFound();
   }

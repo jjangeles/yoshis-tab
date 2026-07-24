@@ -52,8 +52,6 @@ function cleanJsonText(raw: string): string {
 }
 
 async function fetchImageInlineData(imageUrl: string): Promise<{ mimeType: string; base64: string }> {
-  console.log("Gemini image URL:", imageUrl);
-
   const imageResponse = await fetch(imageUrl);
   if (!imageResponse.ok) {
     throw new Error(`Failed to download receipt image: ${imageResponse.status} ${imageResponse.statusText}`);
@@ -63,9 +61,6 @@ async function fetchImageInlineData(imageUrl: string): Promise<{ mimeType: strin
   const mimeType = contentType.split(";")[0].trim() || "application/octet-stream";
   const arrayBuffer = await imageResponse.arrayBuffer();
   const base64 = Buffer.from(arrayBuffer).toString("base64");
-
-  console.log("Gemini image mime type:", mimeType);
-  console.log("Gemini image base64 length:", base64.length);
 
   return { mimeType, base64 };
 }
@@ -117,10 +112,7 @@ Image URL: ${imageUrl}`;
   }
 
   const rawResponse = text.trim();
-  console.log("Gemini raw response:", rawResponse);
-
   const cleanedResponse = cleanJsonText(rawResponse);
-  console.log("Gemini cleaned response:", cleanedResponse);
 
   let parsed: unknown;
 
