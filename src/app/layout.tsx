@@ -27,6 +27,10 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Yoshi's Tab",
   },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

@@ -12,7 +12,7 @@ export default function Header() {
           href="/"
         >
           <p className="mt-1 text-base text-lg font-semibold text-slate-950 dark:text-slate-50">
-            Yoshi's Tab
+            Bill Breaker
           </p>
           <p className="text-xs font-semibold tracking-[0.1em] text-slate-500 dark:text-slate-400">
             Bill sharing made easy
