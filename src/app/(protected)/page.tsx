@@ -2,7 +2,6 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
-import ReceiptList from "@/components/receipt/ReceiptList";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -33,7 +32,40 @@ export default async function DashboardPage() {
       </section>
 
       {receipts && receipts.length > 0 ? (
-        <ReceiptList receipts={receipts} />
+        <section className="space-y-3">
+          {receipts.map((receipt: Database["public"]["Tables"]["receipts"]["Row"]) => (
+            <Link
+              key={receipt.id}
+              href={`/receipts/${receipt.id}`}
+              className="group flex items-center justify-between rounded-[2rem] bg-white/95 px-4 py-5 text-left shadow-sm shadow-slate-900/5 transition hover:bg-slate-50 dark:bg-slate-900/95 dark:hover:bg-slate-800"
+            >
+              <div>
+                <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
+                  {receipt.merchant_name || "Untitled Receipt"}
+                </p>
+                <p className="text-xs leading-6 text-slate-500 dark:text-slate-600">
+                  {
+                    receipt.receipt_date
+                      ? new Date(receipt.receipt_date).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "No date"
+                  }
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-base text-xl font-semibold text-slate-950 dark:text-slate-50">
+                  ₱ {receipt.total.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </section>
       ) : (
         <section className="rounded-[2rem] bg-white/95 p-6 text-center shadow-sm shadow-slate-900/5 dark:bg-slate-900/95">
           <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">No receipts yet</p>
