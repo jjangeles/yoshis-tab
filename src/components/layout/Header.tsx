@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import ThemeToggle from "@/components/theme/ThemeToggle";
-import { Home, Plus } from "lucide-react";
+import { Home, Plus, Users } from "lucide-react";
 
 export default function Header() {
   return (
@@ -22,6 +22,12 @@ export default function Header() {
             className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
           >
             <Plus className="h-5 w-10" />
+          </Link>
+          <Link
+            href="/participants"
+            className="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+          >
+            <Users className="h-5 w-10" />
           </Link>
 
           <div className="absolute right-0">
