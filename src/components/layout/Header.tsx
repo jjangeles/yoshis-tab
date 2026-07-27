@@ -7,7 +7,7 @@ import { Home, Plus, Users } from "lucide-react";
 export default function Header() {
   return (
     <header className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-700/80 dark:bg-slate-950/95">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-4">
+      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-4 pb-8">
         <Link href="/" />
 
         <div className="relative flex w-full items-center gap-3 justify-center">
