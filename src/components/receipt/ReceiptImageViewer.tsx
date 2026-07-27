@@ -55,12 +55,12 @@ export default function ReceiptImageViewer({ imageUrl }: { imageUrl: string|null
               </div>
             )}
 
-            <img
+            {imageUrl && (<img
               src={imageUrl}
               alt="Receipt"
               onLoad={() => setImageLoading(false)}
               className="max-h-[90vh] max-w-full object-contain"
-            />
+            />)}
           </div>
         </div>
       )}
