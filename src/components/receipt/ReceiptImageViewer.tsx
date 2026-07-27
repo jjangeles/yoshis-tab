@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
-export default function ReceiptImageViewer({ imageUrl }: { imageUrl: string }) {
+export default function ReceiptImageViewer({ imageUrl }: { imageUrl: string|null|undefined }) {
   const [open, setOpen] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
 
