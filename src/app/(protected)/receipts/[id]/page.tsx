@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
-import ReceiptParseClient from "./ReceiptParseClient";
+import ReceiptImageViewer from "@/components/receipt/ReceiptImageViewer";
 
 interface ReceiptPageProps {
   params: Promise<{
@@ -30,6 +30,16 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
   }
 
   const receipt = data as ReceiptWithItems;
+  let imageUrl = null
+
+  if (receipt.image_url) {
+    const { data: imageData } = await supabase.storage
+      .from("receipt-images")
+      .createSignedUrl(receipt.image_url, 60 * 60);
+  
+    imageUrl = imageData?.signedUrl;
+    console.log(receipt.image_url);
+  }
 
   if (receipt.owner_id !== user.id) {
     return notFound();
@@ -110,6 +120,9 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                 Items  read from this receipt.
               </p>
             </div>
+            {receipt.image_url && (
+              <ReceiptImageViewer imageUrl={imageUrl} />
+            )}
           </div>
 
           {Array.isArray(receipt.receipt_items) && receipt.receipt_items.length > 0 ? (
