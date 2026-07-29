@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { X, Ellipsis, Pencil, Printer, Trash2, AlertTriangle } from "lucide-react";
+import { X, Ellipsis, Pencil, Printer, Trash2, AlertTriangle, Check, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+
+interface Participant {
+  id: string;
+  name: string;
+}
 
 interface ReceiptEditModalProps {
   receipt: {
@@ -15,15 +20,21 @@ interface ReceiptEditModalProps {
     service_charge: number | null;
     total: number;
   };
+  allParticipants?: Participant[];
+  initialParticipantIds?: string[];
 }
 
-export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
+export default function ReceiptEditModal({
+  receipt,
+  allParticipants = [],
+  initialParticipantIds = [],
+}: ReceiptEditModalProps) {
   const router = useRouter();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  
+
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +46,9 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
     receipt.receipt_date?.split("T")[0] ?? ""
   );
   const [total, setTotal] = useState(receipt.total.toString());
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState<string[]>(
+    initialParticipantIds
+  );
 
   // Close dropdown menu when clicking outside
   useEffect(() => {
@@ -56,7 +70,8 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
     setMerchantName(receipt.merchant_name ?? "");
     setReceiptDate(receipt.receipt_date?.split("T")[0] ?? "");
     setTotal(receipt.total.toString());
-  }, [receipt]);
+    setSelectedParticipantIds(initialParticipantIds);
+  }, [receipt, initialParticipantIds]);
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -70,6 +85,12 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
   const handlePrint = () => {
     setMenuOpen(false);
     window.print();
+  };
+
+  const toggleParticipant = (id: string) => {
+    setSelectedParticipantIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+    );
   };
 
   async function handleDeleteConfirm() {
@@ -91,7 +112,6 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
 
     setDeleting(false);
     setDeleteConfirmOpen(false);
-    
     router.push(`/`);
   }
 
@@ -103,7 +123,8 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
 
     const supabase = createBrowserSupabase();
 
-    const { error } = await supabase
+    // 1. Update receipt main details
+    const { error: updateError } = await supabase
       .from("receipts")
       .update({
         merchant_name: merchantName.trim() || null,
@@ -112,10 +133,39 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
       })
       .eq("id", receipt.id);
 
-    if (error) {
+    if (updateError) {
       setSaving(false);
-      setError(error.message);
+      setError(updateError.message);
       return;
+    }
+
+    // 2. Sync receipt_participants relations
+    const { error: deleteRelError } = await supabase
+      .from("receipt_participants")
+      .delete()
+      .eq("receipt_id", receipt.id);
+
+    if (deleteRelError) {
+      setSaving(false);
+      setError(deleteRelError.message);
+      return;
+    }
+
+    if (selectedParticipantIds.length > 0) {
+      const inserts = selectedParticipantIds.map((pId) => ({
+        receipt_id: receipt.id,
+        participant_id: pId,
+      }));
+
+      const { error: insertRelError } = await supabase
+        .from("receipt_participants")
+        .insert(inserts as any);
+
+      if (insertRelError) {
+        setSaving(false);
+        setError(insertRelError.message);
+        return;
+      }
     }
 
     setSaving(false);
@@ -133,7 +183,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
           type="button"
           disabled={isLoading}
           onClick={() => setMenuOpen((prev) => !prev)}
-          className="flex items-center rounded-full p-2 text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+          className="flex items-center rounded-full p-2 text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-800"
           aria-label="More options"
         >
           <Ellipsis size={20} />
@@ -141,14 +191,14 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
 
         {/* Dropdown Menu */}
         {menuOpen && (
-          <div className="absolute right-0 mt-1 w-36 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-800 dark:bg-slate-900 z-20">
+          <div className="absolute right-0 z-20 mt-1 w-36 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg dark:border-slate-800 dark:bg-slate-900">
             <button
               type="button"
               onClick={() => {
                 setMenuOpen(false);
                 setModalOpen(true);
               }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <Pencil size={15} />
               Edit
@@ -157,7 +207,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
             <button
               type="button"
               onClick={handlePrint}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <Printer size={15} />
               Print
@@ -171,7 +221,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 setMenuOpen(false);
                 setDeleteConfirmOpen(true);
               }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50 transition-colors"
+              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
             >
               <Trash2 size={15} />
               Delete
@@ -189,7 +239,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
           <form
             onSubmit={handleSave}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md space-y-5 rounded-[2rem] bg-white p-6 shadow-xl dark:bg-slate-900"
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto space-y-5 rounded-[2rem] bg-white p-6 shadow-xl dark:bg-slate-900"
           >
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold dark:text-white">
@@ -200,7 +250,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 type="button"
                 disabled={saving}
                 onClick={() => setModalOpen(false)}
-                className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-50"
+                className="text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-50 dark:hover:text-slate-200"
                 aria-label="Close modal"
               >
                 <X size={20} />
@@ -225,7 +275,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 id="merchantName"
                 type="text"
                 disabled={saving}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-slate-100 disabled:opacity-50"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-slate-100"
                 placeholder="e.g. Starbucks"
                 value={merchantName}
                 onChange={(e) => setMerchantName(e.target.value)}
@@ -244,7 +294,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 id="receiptDate"
                 type="date"
                 disabled={saving}
-                className="w-full max-w-full min-w-0 appearance-none rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-slate-100 disabled:opacity-50 [-webkit-appearance:none]"
+                className="w-full max-w-full min-w-0 appearance-none rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-950 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-slate-100 [-webkit-appearance:none]"
                 value={receiptDate}
                 onChange={(e) => setReceiptDate(e.target.value)}
               />
@@ -263,11 +313,48 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 type="number"
                 step="0.01"
                 disabled={saving}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-slate-100 disabled:opacity-50"
+                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:ring-slate-100"
                 placeholder="0.00"
                 value={total}
                 onChange={(e) => setTotal(e.target.value)}
               />
+            </div>
+
+            {/* Participants Section */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300">
+                Participants
+              </label>
+
+              {allParticipants.length > 0 ? (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {allParticipants.map((participant) => {
+                    const isSelected = selectedParticipantIds.includes(
+                      participant.id
+                    );
+                    return (
+                      <button
+                        key={participant.id}
+                        type="button"
+                        disabled={saving}
+                        onClick={() => toggleParticipant(participant.id)}
+                        className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-medium transition-all ${
+                          isSelected
+                            ? "bg-slate-950 text-white shadow-sm dark:bg-slate-100 dark:text-slate-950"
+                            : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        {isSelected ? <Check size={13} /> : <UserPlus size={13} />}
+                        <span>{participant.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="rounded-2xl border border-dashed border-slate-200 p-3 text-center text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                  No participants available.
+                </p>
+              )}
             </div>
 
             <button
@@ -289,9 +376,9 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm space-y-4 rounded-[2rem] bg-white p-6 shadow-xl dark:bg-slate-900 text-center"
+            className="w-full max-w-sm space-y-4 rounded-[2rem] bg-white p-6 text-center shadow-xl dark:bg-slate-900"
           >
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400">
               <AlertTriangle size={24} />
             </div>
 
@@ -300,7 +387,8 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 Delete Receipt?
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Are you sure you want to delete this receipt? This action cannot be undone.
+                Are you sure you want to delete this receipt? This action cannot be
+                undone.
               </p>
             </div>
 
@@ -309,7 +397,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 type="button"
                 disabled={deleting}
                 onClick={() => setDeleteConfirmOpen(false)}
-                className="w-full rounded-3xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                className="w-full rounded-3xl border border-slate-200 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
@@ -317,7 +405,7 @@ export default function ReceiptEditModal({ receipt }: ReceiptEditModalProps) {
                 type="button"
                 disabled={deleting}
                 onClick={handleDeleteConfirm}
-                className="w-full rounded-3xl bg-red-600 py-2.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="w-full rounded-3xl bg-red-600 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
               >
                 Delete
               </button>
