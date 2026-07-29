@@ -4,6 +4,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import ReceiptImageViewer from "@/components/receipt/ReceiptImageViewer";
 import ReceiptEditModal from "@/components/receipt/ReceiptEditModal";
+import ReceiptItemCard from "@/components/receipt/ReceiptItemCard";
 
 interface ReceiptPageProps {
   params: Promise<{
@@ -12,8 +13,10 @@ interface ReceiptPageProps {
 }
 
 type ReceiptWithRelations = Database["public"]["Tables"]["receipts"]["Row"] & {
-  receipt_items: Database["public"]["Tables"]["receipt_items"]["Row"][];
-  receipt_participants: { participant_id: string | number }[];
+  receipt_items: (Database["public"]["Tables"]["receipt_items"]["Row"] & {
+    item_assignments: { participant_id: number; share_cost: number }[];
+  })[];
+  receipt_participants: { participant_id: number }[];
 };
 
 export default async function ReceiptPage({ params }: ReceiptPageProps) {
@@ -21,10 +24,17 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
   const user = await getCurrentUser();
   const supabase = await createServerSupabase();
 
-  // 1. Fetch receipt details along with items and assigned participants
+  // 1. Fetch receipt details along with items, item_assignments, and assigned participants
   const { data, error } = (await supabase
     .from("receipts")
-    .select(`*, receipt_items (*), receipt_participants (participant_id)`)
+    .select(`
+      *, 
+      receipt_items (
+        *,
+        item_assignments (participant_id, share_cost)
+      ), 
+      receipt_participants (participant_id)
+    `)
     .eq("id", id)
     .single()) as { data: ReceiptWithRelations | null; error: unknown };
 
@@ -113,7 +123,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                   assignedParticipants.map((p) => (
                     <span
                       key={p.id}
-                      className="inline-flex items-center font-semibold gap-1.5 rounded-full border-slate-200/80 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                      className="inline-flex items-center gap-1.5 rounded-full border-slate-200/80 bg-slate-50 px-3 py-1 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
                     >
                       {p.name}
                     </span>
@@ -151,7 +161,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                 Receipt items
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                Items read from this receipt.
+                Tap an item to assign participants.
               </p>
             </div>
             {receipt.image_url && <ReceiptImageViewer imageUrl={imageUrl} />}
@@ -160,26 +170,22 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
           {Array.isArray(receipt.receipt_items) &&
           receipt.receipt_items.length > 0 ? (
             <div className="mt-4 space-y-3">
-              {receipt.receipt_items.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-[1.5rem] bg-white/95 px-4 py-4 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none"
-                >
-                  <div className="flex items-center justify-between gap-2 sm:flex-row sm:items-center">
-                    <div>
-                      <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
-                        {item.name || "Unnamed item"}
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400">
-                        Qty {item.quantity} • {item.unit_price.toFixed(2)} each
-                      </p>
-                    </div>
-                    <p className="text-base text-slate-950 dark:text-slate-50">
-                      {item.total_price.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              {receipt.receipt_items.map((item) => {
+                const itemAssignments =
+                  item.item_assignments
+                    ?.map((ia) => String(ia.participant_id))
+                    .filter(Boolean) || [];
+
+                return (
+                  <ReceiptItemCard
+                    key={item.id}
+                    item={item}
+                    receiptId={receipt.id}
+                    assignedReceiptParticipants={assignedParticipants}
+                    itemAssignments={itemAssignments}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="mt-4 rounded-[1.5rem] bg-slate-100 px-4 py-5 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-400">
