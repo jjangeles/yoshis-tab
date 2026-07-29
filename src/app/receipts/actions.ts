@@ -3,33 +3,32 @@
 import { createServerSupabase } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+export interface ParticipantCostInput {
+  participantId: number;
+  shareCost: number;
+}
+
 export async function saveItemAssignments(
   receiptItemId: number,
-  participantIds: number[],
+  assignments: ParticipantCostInput[],
   receiptId: string
 ) {
   const supabase = await createServerSupabase();
 
-  const { data: item } = await supabase
-    .from("receipt_items")
-    .select("total_price")
-    .eq("id", receiptItemId)
-    .single();
-
-  if (!item) return;
-
+  // 1. Clear previous assignments for this item
   await supabase
     .from("item_assignments")
     .delete()
     .eq("receipt_item_id", receiptItemId);
 
-  if (participantIds.length > 0) {
-    const shareCost = item.total_price / participantIds.length;
+  // 2. Insert new calculated cost allocations
+  const validAssignments = assignments.filter((a) => a.shareCost > 0);
 
-    const rowsToInsert = participantIds.map((pId) => ({
+  if (validAssignments.length > 0) {
+    const rowsToInsert = validAssignments.map((a) => ({
       receipt_item_id: receiptItemId,
-      participant_id: pId,
-      share_cost: shareCost,
+      participant_id: a.participantId,
+      share_cost: a.shareCost,
     }));
 
     await supabase.from("item_assignments").insert(rowsToInsert);

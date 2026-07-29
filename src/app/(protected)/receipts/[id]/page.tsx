@@ -171,10 +171,13 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
           receipt.receipt_items.length > 0 ? (
             <div className="mt-4 space-y-3">
               {receipt.receipt_items.map((item) => {
-                const itemAssignments =
-                  item.item_assignments
-                    ?.map((ia) => String(ia.participant_id))
-                    .filter(Boolean) || [];
+                const initialCostAssignments: Record<string, number> = {};
+
+                item.item_assignments?.forEach((ia) => {
+                  if (ia.participant_id) {
+                    initialCostAssignments[String(ia.participant_id)] = ia.share_cost;
+                  }
+                });
 
                 return (
                   <ReceiptItemCard
@@ -182,7 +185,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                     item={item}
                     receiptId={receipt.id}
                     assignedReceiptParticipants={assignedParticipants}
-                    itemAssignments={itemAssignments}
+                    initialCostAssignments={initialCostAssignments}
                   />
                 );
               })}
