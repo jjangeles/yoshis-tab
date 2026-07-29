@@ -61,13 +61,13 @@ export default function ReceiptItemList({
 
       {/* 2. Miscellaneous Expenses Section */}
       {miscItems.length > 0 && (
-        <section className="space-y-3 pt-2">
-          <div className="flex items-center justify-between border-t border-slate-200/80 pt-4 dark:border-slate-800">
+        <section className="space-y-4 pt-2">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Taxes, Fees & Discounts ({miscItems.length})
-              </h2>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              <p className="text-md font-semibold text-slate-950 dark:text-slate-50">
+                Taxes, Fees & Discounts
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 Calculated automatically based on item distribution.
               </p>
             </div>
