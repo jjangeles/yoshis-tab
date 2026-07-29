@@ -115,7 +115,7 @@ export default function ParticipantsPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
             Add participants
           </p>
-          <h1 className="text-3xl font-semibold">Paticipants</h1>
+          <h1 className="text-3xl font-semibold">Participants</h1>
           <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
             You can add new participants here that you can use on receipts.
           </p>
