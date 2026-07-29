@@ -70,21 +70,25 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
     throw new Error("Missing GEMINI_API_KEY environment variable.");
   }
 
-  const prompt = `Extract the receipt data from the image at the following URL. Return valid JSON only with these fields:
-{
-  "merchant_name": string,
-  "receipt_date": string | null,
-  "items": [
-    {"name": string, "quantity": number, "unit_price": number, "total_price": number}
-  ],
-  "subtotal": number | null,
-  "tax": number | null,
-  "service_charge": number | null,
-  "discount": number | null,
-  "total": number
-}
-Use null for missing numeric values. Do not include any extra properties.
-Image URL: ${imageUrl}`;
+  const prompt = `
+    Extract the receipt data from the image at the following URL. Return valid JSON only with these fields:
+    {
+      "merchant_name": string,
+      "receipt_date": string | null,
+      "items": [
+        {"name": string, "quantity": number, "unit_price": number, "total_price": number}
+      ],
+      "total": number
+    }
+    Use null for missing numeric values. Do not include any extra properties.
+    Tax and discount should be included under items when it is not yet added/deducted
+    to the item values you can determine this if all the sum of the receipt items already equals to the total.
+    Return negative value for discount.
+
+    Format merchant name to be in title case (e.g., "Starbucks Coffee" instead of "starbucks coffee").
+
+    Image URL: ${imageUrl}
+  `;
 
   const inlineData = await fetchImageInlineData(imageUrl);
   const client = new GoogleGenerativeAI(GEMINI_API_KEY);

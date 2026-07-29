@@ -272,7 +272,7 @@ export default function NewReceiptPage() {
           </p>
         </section>
 
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-[2rem] p-6 shadow-sm shadow-slate-900/5 dark:shadow-none">
+        <form onSubmit={handleSubmit} className="space-y-4 shadow-none">
           
           {previewUrl ? (
             <div className="relative">

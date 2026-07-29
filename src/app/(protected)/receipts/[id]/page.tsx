@@ -78,40 +78,6 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                 total: receipt.total,
               }}
             />
-            <div className="grid gap-1 sm:grid-cols-2">
-              {receipt.subtotal && receipt.subtotal !== 0 && (
-                <div className="flex justify-between items-center gap-1">
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Subtotal</p>
-                  <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.subtotal.toLocaleString("en-PH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}</p>
-              </div>)}
-              {receipt.tax && receipt.tax !== 0 && (
-              <div className="flex justify-between items-center gap-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Tax</p>
-                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.tax.toLocaleString("en-PH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}</p>
-              </div>)}
-              {receipt.service_charge && receipt.service_charge !== 0 && (
-              <div className="flex justify-between items-center gap-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Service charge</p>
-                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.service_charge.toLocaleString("en-PH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}</p>
-              </div>)}
-              {receipt.discount && receipt.discount !== 0 && (
-              <div className="flex justify-between items-center gap-1">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Discount</p>
-                <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.discount.toLocaleString("en-PH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}</p>
-              </div>)}
-            </div>
             <div className="text-center rounded-[1rem] bg-slate-950 p-2 text-white dark:bg-slate-50 dark:text-slate-950">
               <p className="text-xs uppercase tracking-[0.2em] text-slate-300 dark:text-slate-500">Total</p>
               <p className="mt-1 text-3xl font-semibold">
