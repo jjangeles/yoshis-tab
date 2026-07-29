@@ -288,7 +288,7 @@ export default function ReceiptItemCard({
                 disabled={isPending}
                 className="rounded-full bg-slate-950 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-950 dark:hover:bg-slate-200"
               >
-                {isPending ? "Saving..." : "Save Assignments"}
+                {isPending ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
