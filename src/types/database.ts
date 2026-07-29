@@ -18,23 +18,23 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          participant_id: number | null
-          quantity: number | null
-          receipt_item_id: number | null
+          participant_id: number
+          receipt_item_id: number
+          share_cost: number
         }
         Insert: {
           created_at?: string
           id?: number
-          participant_id?: number | null
-          quantity?: number | null
-          receipt_item_id?: number | null
+          participant_id: number
+          receipt_item_id: number
+          share_cost: number
         }
         Update: {
           created_at?: string
           id?: number
-          participant_id?: number | null
-          quantity?: number | null
-          receipt_item_id?: number | null
+          participant_id?: number
+          receipt_item_id?: number
+          share_cost?: number
         }
         Relationships: [
           {
@@ -58,19 +58,19 @@ export type Database = {
           created_at: string
           id: number
           name: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           id?: number
           name: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
           id?: number
           name?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -91,41 +91,6 @@ export type Database = {
           id?: string
         }
         Relationships: []
-      }
-      receipt_adjustments: {
-        Row: {
-          amount: number | null
-          created_at: string
-          distribution_method: string | null
-          id: number
-          receipt_id: string | null
-          type: string | null
-        }
-        Insert: {
-          amount?: number | null
-          created_at?: string
-          distribution_method?: string | null
-          id?: number
-          receipt_id?: string | null
-          type?: string | null
-        }
-        Update: {
-          amount?: number | null
-          created_at?: string
-          distribution_method?: string | null
-          id?: number
-          receipt_id?: string | null
-          type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "receipt_adjustments_receipt_id_fkey"
-            columns: ["receipt_id"]
-            isOneToOne: false
-            referencedRelation: "receipts"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       receipt_items: {
         Row: {
@@ -169,19 +134,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          participant_id: number | null
+          participant_id: number
           receipt_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          participant_id?: number | null
+          participant_id: number
           receipt_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          participant_id?: number | null
+          participant_id?: number
           receipt_id?: string
         }
         Relationships: [
