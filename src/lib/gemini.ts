@@ -76,13 +76,16 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
       "merchant_name": string,
       "receipt_date": string | null,
       "items": [
-        {"name": string, "quantity": number, "unit_price": number, "total_price": number}
+        {"name": string, "quantity": number, "unit_price": number, "total_price": number, "type": "item" | "misc"}
       ],
       "total": number
     }
+    
+    If merchant name is unavailable do not guess just put "NAME UNAVAILABLE" on merchant name
     Use null for missing numeric values. Do not include any extra properties.
     Tax and discount should be included under items when it is not yet added/deducted
     to the item values you can determine this if all the sum of the receipt items already equals to the total.
+    Regular items/products will have type "item" and service charge, discount and tax should have "misc"
     Return negative value for discount.
 
     Format merchant name to be in title case (e.g., "Starbucks Coffee" instead of "starbucks coffee").

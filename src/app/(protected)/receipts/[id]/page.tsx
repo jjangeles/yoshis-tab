@@ -5,6 +5,7 @@ import type { Database } from "@/types/database";
 import ReceiptImageViewer from "@/components/receipt/ReceiptImageViewer";
 import ReceiptEditModal from "@/components/receipt/ReceiptEditModal";
 import ReceiptItemCard from "@/components/receipt/ReceiptItemCard";
+import ReceiptItemList from "@/components/receipt/ReceiptItemList";
 
 interface ReceiptPageProps {
   params: Promise<{
@@ -167,28 +168,42 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
             {receipt.image_url && <ReceiptImageViewer imageUrl={imageUrl} />}
           </div>
 
-          {Array.isArray(receipt.receipt_items) &&
-          receipt.receipt_items.length > 0 ? (
-            <div className="mt-4 space-y-3">
-              {receipt.receipt_items.map((item) => {
-                const initialCostAssignments: Record<string, number> = {};
+          {Array.isArray(receipt.receipt_items) && receipt.receipt_items.length > 0 ? (
+            <div className="mt-4">
+              {(() => {
+                // 1. Transform raw receipt_items into ReceiptItemData[]
+                const formattedItems = receipt.receipt_items.map((item) => ({
+                  id: item.id,
+                  name: item.name,
+                  quantity: item.quantity,
+                  unit_price: item.unit_price,
+                  total_price: item.total_price,
+                  type: (item.type as "item" | "misc") || "item",
+                  miscCalcType: (item.misc_calc_type as "EVEN" | "PROPORTIONAL") || "EVEN",
+                }));
 
-                item.item_assignments?.forEach((ia) => {
-                  if (ia.participant_id) {
-                    initialCostAssignments[String(ia.participant_id)] = ia.share_cost;
-                  }
+                // 2. Build map of itemId -> { participantId: shareCost }
+                const assignmentsByItemId: Record<number, Record<string, number>> = {};
+
+                receipt.receipt_items.forEach((item) => {
+                  const itemAssignments: Record<string, number> = {};
+                  item.item_assignments?.forEach((ia) => {
+                    if (ia.participant_id) {
+                      itemAssignments[String(ia.participant_id)] = Number(ia.share_cost) || 0;
+                    }
+                  });
+                  assignmentsByItemId[item.id] = itemAssignments;
                 });
 
                 return (
-                  <ReceiptItemCard
-                    key={item.id}
-                    item={item}
+                  <ReceiptItemList
                     receiptId={receipt.id}
-                    assignedReceiptParticipants={assignedParticipants}
-                    initialCostAssignments={initialCostAssignments}
+                    items={formattedItems}
+                    assignedParticipants={assignedParticipants}
+                    assignmentsByItemId={assignmentsByItemId}
                   />
                 );
-              })}
+              })()}
             </div>
           ) : (
             <div className="mt-4 rounded-[1.5rem] bg-slate-100 px-4 py-5 text-sm text-slate-600 dark:bg-slate-800 dark:text-slate-400">

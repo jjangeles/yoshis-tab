@@ -96,28 +96,34 @@ export type Database = {
         Row: {
           created_at: string
           id: number
+          misc_calc_type: string | null
           name: string
           quantity: number
           receipt_id: string
           total_price: number
+          type: string | null
           unit_price: number
         }
         Insert: {
           created_at?: string
           id?: number
+          misc_calc_type?: string | null
           name: string
           quantity: number
           receipt_id: string
           total_price: number
+          type?: string | null
           unit_price: number
         }
         Update: {
           created_at?: string
           id?: number
+          misc_calc_type?: string | null
           name?: string
           quantity?: number
           receipt_id?: string
           total_price?: number
+          type?: string | null
           unit_price?: number
         }
         Relationships: [
