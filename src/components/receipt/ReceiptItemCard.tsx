@@ -119,11 +119,6 @@ export default function ReceiptItemCard({
               <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
                 {item.name || "Unnamed item"}
               </p>
-              {isUnassigned && (
-                <span className="inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">
-                  Unassigned
-                </span>
-              )}
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
               Qty {item.quantity} • ₱{item.unit_price.toFixed(2)} each
@@ -142,16 +137,16 @@ export default function ReceiptItemCard({
               }`}
             >
               {!isUnassigned
-                ? `${activeParticipantIds.length} ${
+                && `${activeParticipantIds.length} ${
                     activeParticipantIds.length === 1 ? "person" : "people"
                   } assigned`
-                : "Assign people"}
+              }
             </span>
           </div>
         </div>
 
         {/* Assigned Badges with Share Amount */}
-        {!isUnassigned && (
+        {!isUnassigned ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {assignedReceiptParticipants
               .filter((p) => (localCostAssignments[p.id] || 0) > 0)
@@ -173,6 +168,10 @@ export default function ReceiptItemCard({
                 );
               })}
           </div>
+        ) : (
+          <span className="mt-3 inline-flex items-center rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/60 dark:text-amber-200">
+            Unassigned
+          </span>
         )}
       </div>
 
