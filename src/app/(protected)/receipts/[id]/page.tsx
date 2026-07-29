@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { createServerSupabase } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 import ReceiptImageViewer from "@/components/receipt/ReceiptImageViewer";
+import ReceiptEditModal from "@/components/receipt/ReceiptEditModal";
 
 interface ReceiptPageProps {
   params: Promise<{
@@ -49,7 +50,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
     <div className="space-y-6 pb-10 pt-4">
       <section className="space-y-4">
         <div className="rounded-[2rem] px-5 py-5 bg-white/95 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
-          <div className="flex flex-col gap-3">
+          <div className="relative flex flex-col gap-3">
             <div className="text-center">
               <h1 className="text-xl font-semibold text-slate-950 dark:text-slate-50">
                 {receipt.merchant_name || "Untitled Receipt"}
@@ -66,8 +67,19 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                 }
               </p>
             </div>
+            <ReceiptEditModal
+              receipt={{
+                id: receipt.id,
+                merchant_name: receipt.merchant_name,
+                receipt_date: receipt.receipt_date,
+                subtotal: receipt.subtotal,
+                tax: receipt.tax,
+                service_charge: receipt.service_charge,
+                total: receipt.total,
+              }}
+            />
             <div className="grid gap-1 sm:grid-cols-2">
-              {receipt.subtotal !== 0 && (
+              {receipt.subtotal && receipt.subtotal !== 0 && (
                 <div className="flex justify-between items-center gap-1">
                   <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Subtotal</p>
                   <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.subtotal.toLocaleString("en-PH", {
@@ -75,7 +87,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                     maximumFractionDigits: 2,
                   })}</p>
               </div>)}
-              {receipt.tax !== 0 && (
+              {receipt.tax && receipt.tax !== 0 && (
               <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Tax</p>
                 <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.tax.toLocaleString("en-PH", {
@@ -83,7 +95,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                     maximumFractionDigits: 2,
                   })}</p>
               </div>)}
-              {receipt.service_charge !== 0 && (
+              {receipt.service_charge && receipt.service_charge !== 0 && (
               <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Service charge</p>
                 <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.service_charge.toLocaleString("en-PH", {
@@ -91,7 +103,7 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
                     maximumFractionDigits: 2,
                   })}</p>
               </div>)}
-              {receipt.discount !== 0 && (
+              {receipt.discount && receipt.discount !== 0 && (
               <div className="flex justify-between items-center gap-1">
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Discount</p>
                 <p className="text-lg font-semibold text-slate-950 dark:text-slate-50">{receipt.discount.toLocaleString("en-PH", {
