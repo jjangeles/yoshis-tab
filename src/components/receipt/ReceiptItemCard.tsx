@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { saveItemAssignments } from "@/app/receipts/actions";
 
 interface Participant {
@@ -9,7 +9,7 @@ interface Participant {
 }
 
 interface ItemAssignmentMap {
-  [participantId: string]: number;
+  [participantId: string]: number; // participantId -> shares count
 }
 
 interface ReceiptItemCardProps {
@@ -22,7 +22,6 @@ interface ReceiptItemCardProps {
   };
   receiptId: string;
   assignedReceiptParticipants: Participant[];
-  // Initial assignments map: { participantId: shareCost }
   initialCostAssignments: Record<string, number>;
 }
 
@@ -34,13 +33,24 @@ export default function ReceiptItemCard({
 }: ReceiptItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sharesMap, setSharesMap] = useState<ItemAssignmentMap>({});
+  
+  // Local state for immediate card update on screen
+  const [localCostAssignments, setLocalCostAssignments] = useState(
+    initialCostAssignments
+  );
+  
   const [isPending, startTransition] = useTransition();
 
+  // Keep local state in sync when server props refresh
+  useEffect(() => {
+    setLocalCostAssignments(initialCostAssignments);
+  }, [initialCostAssignments]);
+
   const handleOpenModal = () => {
-    // Derive initial 1 share for each currently assigned participant
+    // Populate modal shares based on current active local costs
     const defaultShares: ItemAssignmentMap = {};
-    Object.keys(initialCostAssignments).forEach((pId) => {
-      if (initialCostAssignments[pId] > 0) {
+    Object.keys(localCostAssignments).forEach((pId) => {
+      if (localCostAssignments[pId] > 0) {
         defaultShares[pId] = 1;
       }
     });
@@ -61,29 +71,32 @@ export default function ReceiptItemCard({
     });
   };
 
-  // Calculations for current active assignments from server props
-  const activeParticipantIds = Object.keys(initialCostAssignments).filter(
-    (id) => initialCostAssignments[id] > 0
+  // Immediate calculations from local state
+  const activeParticipantIds = Object.keys(localCostAssignments).filter(
+    (id) => localCostAssignments[id] > 0
   );
   const isUnassigned = activeParticipantIds.length === 0;
 
-  // Local modal calculations
+  // Modal calculations for preview
   const modalEntries = Object.entries(sharesMap).filter(([_, s]) => s > 0);
   const modalTotalShares = modalEntries.reduce((sum, [_, s]) => sum + s, 0);
 
   const handleSave = () => {
+    // 1. Calculate new cost breakdown locally
+    const newOptimisticAssignments: Record<string, number> = {};
+    const payload = modalEntries.map(([pId, shares]) => {
+      const percentage = shares / modalTotalShares;
+      const shareCost = item.total_price * percentage;
+      newOptimisticAssignments[pId] = shareCost;
+
+      return {
+        participantId: Number(pId),
+        shareCost,
+      };
+    });
+
+    setLocalCostAssignments(newOptimisticAssignments);
     startTransition(async () => {
-      const payload = modalEntries.map(([pId, shares]) => {
-        // Percentage = shares / totalShares
-        const percentage = shares / modalTotalShares;
-        const shareCost = item.total_price * percentage;
-
-        return {
-          participantId: Number(pId),
-          shareCost,
-        };
-      });
-
       await saveItemAssignments(item.id, payload, receiptId);
       setIsModalOpen(false);
     });
@@ -91,9 +104,9 @@ export default function ReceiptItemCard({
 
   return (
     <>
-      {/* Item Card */}
+      {/* Item Card - Updates Instantly in Background */}
       <div
-        onClick={handleOpenModal}
+        onClick={() => !isPending && handleOpenModal()}
         className={`cursor-pointer rounded-[1.5rem] p-4 shadow-sm shadow-slate-900/5 transition border ${
           isUnassigned
             ? "bg-amber-50/90 border-amber-300/70 hover:bg-amber-100/80 dark:bg-amber-950/30 dark:border-amber-700/50 dark:hover:bg-amber-950/50"
@@ -141,9 +154,9 @@ export default function ReceiptItemCard({
         {!isUnassigned && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {assignedReceiptParticipants
-              .filter((p) => (initialCostAssignments[p.id] || 0) > 0)
+              .filter((p) => (localCostAssignments[p.id] || 0) > 0)
               .map((p) => {
-                const cost = initialCostAssignments[p.id];
+                const cost = localCostAssignments[p.id];
                 const pct = (cost / item.total_price) * 100;
                 return (
                   <span
@@ -152,6 +165,7 @@ export default function ReceiptItemCard({
                   >
                     <span>{p.name}</span>
                     <span className="text-slate-400 dark:text-slate-500">•</span>
+                    <span className="font-semibold">{pct.toFixed(0)}%</span>
                     <span className="text-slate-400 dark:text-slate-500">
                       (₱{cost.toFixed(2)})
                     </span>
@@ -179,7 +193,7 @@ export default function ReceiptItemCard({
               <button
                 onClick={() => setIsModalOpen(false)}
                 disabled={isPending}
-                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
               >
                 ✕
               </button>
@@ -222,7 +236,7 @@ export default function ReceiptItemCard({
                         <button
                           type="button"
                           onClick={() => handleSetShares(p.id, shares - 1)}
-                          disabled={shares === 0}
+                          disabled={shares === 0 || isPending}
                           className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-700 transition hover:bg-slate-300 disabled:opacity-30 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                         >
                           -
@@ -233,7 +247,8 @@ export default function ReceiptItemCard({
                         <button
                           type="button"
                           onClick={() => handleSetShares(p.id, shares + 1)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-700 transition hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                          disabled={isPending}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-slate-700 transition hover:bg-slate-300 disabled:opacity-30 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
                         >
                           +
                         </button>
@@ -278,7 +293,7 @@ export default function ReceiptItemCard({
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 disabled={isPending}
-                className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                className="rounded-full px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -286,8 +301,29 @@ export default function ReceiptItemCard({
                 type="button"
                 onClick={handleSave}
                 disabled={isPending}
-                className="rounded-full bg-slate-950 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-950 dark:hover:bg-slate-200"
+                className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-70 dark:bg-slate-50 dark:text-slate-950 dark:hover:bg-slate-200"
               >
+                {isPending && (
+                  <svg
+                    className="h-4 w-4 animate-spin text-current"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                )}
                 {isPending ? "Saving..." : "Save"}
               </button>
             </div>

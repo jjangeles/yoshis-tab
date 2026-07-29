@@ -139,31 +139,66 @@ export default function ReceiptEditModal({
       return;
     }
 
-    // 2. Sync receipt_participants relations
-    const { error: deleteRelError } = await supabase
-      .from("receipt_participants")
-      .delete()
-      .eq("receipt_id", receipt.id);
+    // 2. Calculate diff for participants (what to delete vs what to add)
+    const toRemove = initialParticipantIds.filter(
+      (id) => !selectedParticipantIds.includes(id)
+    );
+    const toAdd = selectedParticipantIds.filter(
+      (id) => !initialParticipantIds.includes(id)
+    );
 
-    if (deleteRelError) {
-      setSaving(false);
-      setError(deleteRelError.message);
-      return;
+    // Convert string IDs to numbers for database query compatibility
+    const numericToRemove = toRemove.map(Number);
+    const numericToAdd = toAdd.map(Number);
+
+    // 3. Remove specific unselected participants
+    if (toRemove.length > 0) {
+      // First, delete any item assignments for these removed participants on this receipt
+      const { data: receiptItems } = await supabase
+        .from("receipt_items")
+        .select("id")
+        .eq("receipt_id", receipt.id);
+
+      const itemIds = receiptItems?.map((item) => item.id) || [];
+
+      if (itemIds.length > 0) {
+        await supabase
+          .from("item_assignments")
+          .delete()
+          .in("item_id", itemIds)
+          .in("participant_id", numericToRemove); // <-- Fix: passed numbers instead of strings
+      }
+
+      // Then delete their receipt_participants record
+      const { error: deleteError } = await supabase
+        .from("receipt_participants")
+        .delete()
+        .eq("receipt_id", receipt.id)
+        .in("participant_id", numericToRemove); // <-- Fix: passed numbers instead of strings
+
+      if (deleteError) {
+        setSaving(false);
+        setError(deleteError.message);
+        return;
+      }
     }
 
-    if (selectedParticipantIds.length > 0) {
-      const inserts = selectedParticipantIds.map((pId) => ({
-        receipt_id: receipt.id,
-        participant_id: pId,
-      }));
+    // 4. Insert only newly added participants
+    if (toAdd.length > 0) {
+      const inserts = selectedParticipantIds
+        .filter((id) => toAdd.includes(id))
+        .map((pId) => ({
+          receipt_id: receipt.id,
+          participant_id: pId, // Keep as original type expected by your schema
+        }));
 
-      const { error: insertRelError } = await supabase
+      const { error: insertError } = await supabase
         .from("receipt_participants")
         .insert(inserts as any);
 
-      if (insertRelError) {
+      if (insertError) {
         setSaving(false);
-        setError(insertRelError.message);
+        setError(insertError.message);
         return;
       }
     }
@@ -414,7 +449,6 @@ export default function ReceiptEditModal({
         </div>
       )}
 
-      {/* Global Navigation Loader (Triggered during saving or deleting) */}
       {isLoading && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/10 backdrop-blur-sm dark:bg-black/30">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900 dark:border-slate-700 dark:border-t-white" />
