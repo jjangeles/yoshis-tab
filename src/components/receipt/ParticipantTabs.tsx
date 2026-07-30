@@ -3,10 +3,9 @@
 import { useState } from "react";
 import {
   ParticipantShare,
-  exportSingleParticipantImage,
   exportAllParticipantsSummaryImage,
 } from "@/lib/receiptExporter";
-import { Download } from "lucide-react";
+import { Download, AlertTriangle } from "lucide-react";
 
 interface ParticipantTabsProps {
   merchantName?: string | null;
@@ -42,6 +41,13 @@ export default function ParticipantTabs({
     );
   }
 
+  // Calculate unassigned items count
+  const unassignedCount = receiptItems.filter(
+    (item) => !item.item_assignments || item.item_assignments.length === 0
+  ).length;
+
+  const hasUnassignedItems = unassignedCount > 0;
+
   // Calculate share details for each participant
   const participantShares: Record<string, ParticipantShare> = {};
 
@@ -76,7 +82,7 @@ export default function ParticipantTabs({
   const activeParticipant = participantShares[activeTabId];
 
   const handleDownloadAllSummary = async () => {
-    if (isGenerating) return;
+    if (isGenerating || hasUnassignedItems) return;
     setIsGenerating(true);
     try {
       await exportAllParticipantsSummaryImage(
@@ -95,6 +101,19 @@ export default function ParticipantTabs({
 
   return (
     <div className="rounded-[2rem] bg-white/95 p-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95">
+      {/* Amber Warning for Unassigned Items */}
+      {hasUnassignedItems && (
+        <div className="mb-4 flex items-center gap-2.5 rounded-2xl bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <p className="font-semibold">
+              There are {unassignedCount} unassigned item{unassignedCount > 1 ? "s" : ""}.
+            </p>
+            <p>Please assign all items first.</p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div>
           <h2 className="text-md font-semibold text-slate-950 dark:text-slate-50">
@@ -109,10 +128,16 @@ export default function ParticipantTabs({
         <button
           type="button"
           onClick={handleDownloadAllSummary}
-          disabled={isGenerating}
-          className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-950 dark:hover:bg-slate-200"
+          disabled={isGenerating || hasUnassignedItems}
+          title={
+            hasUnassignedItems
+              ? "Assign all items to enable download"
+              : "Download Summary Image"
+          }
+          className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-50 dark:text-slate-950 dark:hover:bg-slate-200"
         >
-          <Download />
+          <span className="text-xs">Download</span>
+          <Download className="h-4 w-4" />
         </button>
       </div>
 
@@ -217,9 +242,7 @@ export default function ParticipantTabs({
 
           {/* Bottom Card Summary & Download Button */}
           <div className="flex items-center justify-between gap-5 border-t border-slate-200 pt-3 dark:border-slate-800">
-            <p className="text-2xl font-semibold">
-              Total
-            </p>
+            <p className="text-2xl font-semibold">Total</p>
 
             <div className="text-right">
               <span className="block text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
