@@ -6,6 +6,7 @@ import {
   exportAllParticipantsSummaryImage,
 } from "@/lib/receiptExporter";
 import { Download, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 
 interface ParticipantTabsProps {
   merchantName?: string | null;
@@ -105,12 +106,19 @@ export default function ParticipantTabs({
       {hasUnassignedItems && (
         <div className="mb-4 flex items-center gap-2.5 rounded-2xl bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 border border-amber-200 dark:border-amber-800/50">
           <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-          <div>
+          <div className="flex-1">
             <p className="font-semibold">
-              There are {unassignedCount} unassigned item{unassignedCount > 1 ? "s" : ""}.
+              There {unassignedCount > 1 ? "are" : "is"} {unassignedCount} unassigned item{unassignedCount > 1 ? "s" : ""}.
             </p>
             <p>Please assign all items first.</p>
           </div>
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="shrink-0 rounded-full bg-amber-200/70 px-3 py-1 text-xs font-semibold text-amber-950 transition hover:bg-amber-300 dark:bg-amber-800/60 dark:text-amber-100 dark:hover:bg-amber-700/80"
+          >
+            Assign
+          </button>
         </div>
       )}
 
