@@ -130,7 +130,7 @@ export default function ParticipantTabs({
             Participant Breakdowns
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-400">
-            View individual cost breakdown per participant.
+            View participant share
           </p>
         </div>
 
