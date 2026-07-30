@@ -241,18 +241,20 @@ export default function NewReceiptPage() {
               </h2>
             </div>
 
-            {parsing ? (
-              <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                <div className="h-full w-full animate-pulse rounded-full bg-slate-950 dark:bg-slate-100" />
-              </div>
-            ) : (
-              <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+            <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+              {parsing ? (
+                <div 
+                  key="parsing-bar"
+                  className="h-full w-full animate-pulse rounded-full bg-slate-950 dark:bg-slate-100" 
+                />
+              ) : (
                 <div
+                  key="upload-bar"
                   className="h-full rounded-full bg-slate-950 transition-all duration-300 dark:bg-slate-100"
                   style={{ width: `${uploadProgress}%` }}
                 />
-              </div>
-            )}
+              )}
+            </div>
 
             <p className="mt-4 text-center text-xs text-slate-400">
               Please wait...
