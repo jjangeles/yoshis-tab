@@ -70,15 +70,19 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
   }
 
   const prompt = `
-    Extract receipt data from the provided image into JSON.
+    Extract receipt data from the provided image into a JSON object.
 
-    ### CRITICAL ITEM TYPE RULES:
-    1. Standard purchased products, food, or drinks MUST have "type": "item".
+    ### CRITICAL ITEM CLASSIFICATION RULES:
+    1. Standard products, food, or drinks MUST have "type": "item".
     2. Non-product financial line items MUST have "type": "misc". This includes:
-       - Tax / VAT / GST
-       - Service Charges / Delivery Fees / Tips
-       - Discounts / Promos / Vouchers (Must have negative unit_price and total_price, e.g. -50.00)
-       - Rounding adjustments
+      - Tax / VAT / GST / Service Charges / Tips
+      - Discounts / Promos / Vouchers (Must have negative unit_price and total_price, e.g. -50.00)
+
+    ### CRITICAL ARITHMETIC & VAT-INCLUSIVE RULES:
+    - The sum of all items in "items" (item total_prices + negative discount + tax + charges) MUST strictly equal the final "total" on the receipt.
+    - **VAT-Inclusive Receipts Check**: If individual line item prices are already VAT-inclusive, DO NOT add "VAT" or "Tax" as an item with "type": "misc" if doing so would double-count the tax and make the sum of items exceed the total.
+    - Only include Tax / VAT as an item in "items" if the line items were listed TAX-EXCLUSIVE (net price) and the tax is added on top to reach the total.
+    - Subtotal, Tax, Service Charge, and Discount fields in the root object should still be populated for metadata reference, but "items" array must sum cleanly to "total".
 
     Format merchant_name in Title Case.
   `;
@@ -150,13 +154,35 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
     throw new Error("Gemini response was not valid JSON.");
   }
 
-  const items: ParsedItem[] = (parsed.items || []).map((item: any) => ({
+  let items: ParsedItem[] = (parsed.items || []).map((item: any) => ({
     name: String(item.name || ""),
     quantity: Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1,
     unit_price: parseNumber(item.unit_price) ?? 0,
     total_price: parseNumber(item.total_price) ?? 0,
-    type: item.type === "misc" ? "misc" : "item", // ✅ Preserved and safely typed!
+    type: item.type === "misc" ? "misc" : "item",
   }));
+
+  const total = Number(parsed.total) || 0;
+
+  // 2. 🛡️ POST-PROCESSING GUARDRAIL ADDED HERE:
+  // Calculate sum of all parsed line items
+  const sumItems = items.reduce((acc, curr) => acc + curr.total_price, 0);
+
+  // If there's a discrepancy where tax was double-counted on VAT-inclusive prices:
+  if (Math.abs(sumItems - total) > 0.05) {
+    const adjustedItems = items.filter((item) => {
+      // Remove standalone positive tax/VAT misc items if they caused total to overshoot
+      const isTax = item.type === "misc" && /vat|tax|gst/i.test(item.name);
+      return !isTax;
+    });
+
+    const newSum = adjustedItems.reduce((acc, curr) => acc + curr.total_price, 0);
+    
+    // If dropping double-counted VAT fixes the math, use the adjusted items list
+    if (Math.abs(newSum - total) <= 0.05) {
+      items = adjustedItems;
+    }
+  }
 
   return {
     merchant_name: String(parsed.merchant_name || ""),
@@ -166,6 +192,6 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
     tax: parseNumber(parsed.tax),
     service_charge: parseNumber(parsed.service_charge),
     discount: parseNumber(parsed.discount),
-    total: Number(parsed.total),
+    total,
   };
 }
