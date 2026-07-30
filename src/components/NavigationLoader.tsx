@@ -16,8 +16,34 @@ export default function NavigationLoader() {
       const target = event.target as HTMLElement;
       const link = target.closest("a");
 
+      if (!link) return;
+
+      // 1. IGNORE DOWNLOAD LINKS (This fixes your issue!)
+      if (link.hasAttribute("download")) return;
+
+      // 2. IGNORE NON-ROUTING SCHEMES (blob:, data:, mailto:, tel:)
       if (
-        link &&
+        link.href.startsWith("blob:") ||
+        link.href.startsWith("data:") ||
+        link.href.startsWith("mailto:") ||
+        link.href.startsWith("tel:")
+      ) {
+        return;
+      }
+
+      // 3. IGNORE NEW TABS OR MODIFIER CLICKS
+      if (
+        link.target === "_blank" ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      // 4. ONLY TRIGGER ON ACTUAL ROUTE CHANGES
+      if (
         link.href &&
         link.origin === window.location.origin &&
         link.pathname !== window.location.pathname

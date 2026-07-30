@@ -75,29 +75,11 @@ export default function ParticipantTabs({
 
   const activeParticipant = participantShares[activeTabId];
 
-  // Action Handlers
-  const handleDownloadSingleImage = () => {
-    if (!activeParticipant) return;
-
+  const handleDownloadAllSummary = async () => {
+    if (isGenerating) return;
     setIsGenerating(true);
-
     try {
-      exportSingleParticipantImage(activeParticipant, {
-        merchantName,
-        receiptDate,
-      });
-    } catch (err) {
-      console.error("Failed to generate image:", err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleDownloadAllSummary = () => {
-    setIsGenerating(true);
-
-    try {
-      exportAllParticipantsSummaryImage(
+      await exportAllParticipantsSummaryImage(
         Object.values(participantShares),
         {
           merchantName,
