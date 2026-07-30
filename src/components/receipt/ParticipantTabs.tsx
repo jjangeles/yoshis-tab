@@ -150,13 +150,13 @@ export default function ParticipantTabs({
             <button
               key={p.id}
               onClick={() => setActiveTabId(p.id)}
-              className={`min-w-[6rem] shrink-0 items-center gap-2 rounded-full px-4 py-1 text-xs font-semibold transition-all ${
+              className={`min-w-[6rem] shrink-0 items-center gap-2 rounded-md px-4 py-1 text-xs font-semibold transition-all ${
                 isActive
                   ? "bg-slate-950 text-white dark:bg-slate-50 dark:text-slate-950"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               }`}
             >
-              <p>{p.name}</p>
+              <p className="font-semibold">{p.name}</p>
               <p className="text-[10px]">
                 ₱
                 {share?.totalShareCost.toLocaleString("en-PH", {
