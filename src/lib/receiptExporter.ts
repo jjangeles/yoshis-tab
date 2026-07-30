@@ -206,7 +206,7 @@ export async function exportSingleParticipantImage(
 
       let subText = `${item?.quantity || 1} x ₱${(item?.unitPrice || 0).toFixed(2)}`;
       if (item?.type === "misc") {
-        subText = `[Misc] ${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
+        subText = `${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
       }
       ctx.fillText(subText, padding, y + 34);
 
@@ -398,7 +398,7 @@ export async function exportAllParticipantsSummaryImage(
           ctx.font = "400 12px system-ui, -apple-system, sans-serif";
           let subText = `${item?.quantity || 1} x ₱${(item?.unitPrice || 0).toFixed(2)}`;
           if (item?.type === "misc") {
-            subText = `[Misc] ${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
+            subText = `${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
           }
           ctx.fillText(subText, cardX + cardPadding, innerY + 28);
 
