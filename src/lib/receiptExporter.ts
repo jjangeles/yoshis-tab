@@ -129,30 +129,41 @@ export async function exportSingleParticipantImage(
     const { canvas, ctx } = createRetinaCanvas(width, height);
     if (!ctx) throw new Error("Could not create 2D canvas context");
 
-    // Background card
+    // Background card (Main body)
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
     ctx.roundRect(0, 0, width, height, 24);
     ctx.fill();
 
-    // Border
-    ctx.strokeStyle = "#e2e8f0";
+    // Premium Top Accent Bar
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(0, 0, width, height, 24);
+    ctx.clip();
+    ctx.fillStyle = "#4f46e5"; // Indigo accent
+    ctx.fillRect(0, 0, width, 8);
+    ctx.restore();
+
+    // Outer Border
+    ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, width, height, 24);
     ctx.stroke();
 
     let y = padding;
 
     // Merchant Name / Date row
     if (metadata?.merchantName || metadata?.receiptDate) {
-      ctx.fillStyle = "#2563eb";
-      ctx.font = "bold 12px system-ui, -apple-system, sans-serif";
-
+      ctx.fillStyle = "#4338ca"; // Darker indigo for merchant
+      ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
+      
       const merchantText = (metadata.merchantName || "").toUpperCase();
       ctx.fillText(merchantText, padding, y + 14);
 
       if (metadata.receiptDate) {
-        ctx.fillStyle = "#64748b";
-        ctx.font = "12px system-ui, -apple-system, sans-serif";
+        ctx.fillStyle = "#71717a";
+        ctx.font = "500 12px system-ui, -apple-system, sans-serif";
         const dateWidth = ctx.measureText(metadata.receiptDate).width;
         ctx.fillText(metadata.receiptDate, width - padding - dateWidth, y + 14);
       }
@@ -160,18 +171,19 @@ export async function exportSingleParticipantImage(
     }
 
     // Participant Name Header
-    ctx.fillStyle = "#0f172a";
-    ctx.font = "bold 20px system-ui, -apple-system, sans-serif";
-    ctx.fillText(participant?.participantName || "Participant", padding, y + 20);
+    ctx.fillStyle = "#18181b"; // Zinc 900
+    ctx.font = "900 28px system-ui, -apple-system, sans-serif";
+    ctx.fillText(participant?.participantName || "Participant", padding, y + 24);
 
-    ctx.fillStyle = "#64748b";
-    ctx.font = "12px system-ui, -apple-system, sans-serif";
-    ctx.fillText("Individual Receipt Breakdown", padding, y + 40);
+    ctx.fillStyle = "#71717a";
+    ctx.font = "500 13px system-ui, -apple-system, sans-serif";
+    ctx.fillText("Individual Receipt Breakdown", padding, y + 46);
 
     y += headerHeight - (hasMeta ? 28 : 0);
 
-    // Divider
-    ctx.strokeStyle = "#f1f5f9";
+    // Header Divider
+    ctx.strokeStyle = "#f4f4f5";
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(padding, y - 20);
     ctx.lineTo(width - padding, y - 20);
@@ -184,21 +196,21 @@ export async function exportSingleParticipantImage(
       const percentageShare =
         totalPrice !== 0 ? Math.abs((shareCost / totalPrice) * 100) : 0;
 
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "500 14px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "#27272a"; // Zinc 800
+      ctx.font = "600 15px system-ui, -apple-system, sans-serif";
       ctx.fillText(item?.itemName || "Item", padding, y + 14);
 
-      ctx.fillStyle = "#64748b";
-      ctx.font = "12px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "#71717a"; // Zinc 500
+      ctx.font = "400 13px system-ui, -apple-system, sans-serif";
 
       let subText = `${item?.quantity || 1} x ₱${(item?.unitPrice || 0).toFixed(2)}`;
       if (item?.type === "misc") {
         subText = `[Misc] ${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
       }
-      ctx.fillText(subText, padding, y + 32);
+      ctx.fillText(subText, padding, y + 34);
 
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "#18181b";
+      ctx.font = "bold 15px system-ui, -apple-system, sans-serif";
       const costText = `₱${shareCost.toLocaleString("en-PH", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -210,27 +222,31 @@ export async function exportSingleParticipantImage(
     });
 
     y += 10;
-    ctx.strokeStyle = "#e2e8f0";
+    
+    // Total Section Callout Box
+    const totalBoxHeight = 64;
+    ctx.fillStyle = "#f8fafc"; // Very subtle blue/gray background for emphasis
     ctx.beginPath();
-    ctx.moveTo(padding, y);
-    ctx.lineTo(width - padding, y);
+    ctx.roundRect(padding, y, width - padding * 2, totalBoxHeight, 12);
+    ctx.fill();
+
+    ctx.strokeStyle = "#f1f5f9";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Total
-    y += 30;
     ctx.fillStyle = "#64748b";
-    ctx.font = "600 12px system-ui, -apple-system, sans-serif";
-    ctx.fillText("TOTAL SHARE", padding, y + 10);
+    ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+    ctx.fillText("TOTAL SHARE", padding + 20, y + totalBoxHeight / 2 + 4);
 
     ctx.fillStyle = "#0f172a";
-    ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
+    ctx.font = "900 24px system-ui, -apple-system, sans-serif";
     const totalShareCost = participant?.totalShareCost || 0;
     const totalText = `₱${totalShareCost.toLocaleString("en-PH", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
     const totalWidth = ctx.measureText(totalText).width;
-    ctx.fillText(totalText, width - padding - totalWidth, y + 12);
+    ctx.fillText(totalText, width - padding - 20 - totalWidth, y + totalBoxHeight / 2 + 8);
 
     const safeName = (participant?.participantName || "participant")
       .toLowerCase()
@@ -252,14 +268,14 @@ export async function exportAllParticipantsSummaryImage(
     const list = Array.isArray(participants) ? participants : [];
     const padding = 32;
     const width = 520;
-    const cardPadding = 20;
-    const cardHeaderHeight = 40;
-    const itemRowHeight = 36;
-    const cardFooterHeight = 40;
-    const cardGap = 20;
+    const cardPadding = 24;
+    const cardHeaderHeight = 44;
+    const itemRowHeight = 38;
+    const cardFooterHeight = 48;
+    const cardGap = 24;
 
     const hasMeta = Boolean(metadata?.merchantName || metadata?.receiptDate);
-    const headerSectionHeight = hasMeta ? 110 : 80;
+    const headerSectionHeight = hasMeta ? 120 : 80;
     const grandTotalSectionHeight = 90;
 
     let grandTotalCost = 0;
@@ -283,8 +299,8 @@ export async function exportAllParticipantsSummaryImage(
     const { canvas, ctx } = createRetinaCanvas(width, height);
     if (!ctx) throw new Error("Could not create 2D canvas context");
 
-    // Outer background
-    ctx.fillStyle = "#f8fafc";
+    // Premium Outer background (Zinc 50)
+    ctx.fillStyle = "#fcfcfd";
     ctx.fillRect(0, 0, width, height);
 
     let y = padding;
@@ -292,15 +308,24 @@ export async function exportAllParticipantsSummaryImage(
     // Header Block
     ctx.textAlign = "center";
     if (metadata?.merchantName) {
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 22px system-ui, -apple-system, sans-serif";
-      ctx.fillText(metadata.merchantName, width / 2, y + 22);
+      ctx.fillStyle = "#18181b"; // Zinc 900
+      ctx.font = "900 26px system-ui, -apple-system, sans-serif";
+      ctx.fillText(metadata.merchantName, width / 2, y + 24);
     }
 
     if (metadata?.receiptDate) {
-      ctx.fillStyle = "#64748b";
-      ctx.font = "12px system-ui, -apple-system, sans-serif";
-      ctx.fillText(metadata.receiptDate, width / 2, y + 44);
+      const formattedDate = new Date(metadata.receiptDate).toLocaleDateString(
+        "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        },
+      );
+
+      ctx.fillStyle = "#71717a"; // Zinc 500
+      ctx.font = "500 13px system-ui, -apple-system, sans-serif";
+      ctx.fillText(formattedDate, width / 2, y + 48);
     }
 
     ctx.textAlign = "left";
@@ -312,39 +337,49 @@ export async function exportAllParticipantsSummaryImage(
       const cardX = padding;
       const cardWidth = width - padding * 2;
 
+      // Card Shadow
+      ctx.save();
+      ctx.shadowColor = "rgba(0, 0, 0, 0.04)";
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 8;
+      
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.roundRect(cardX, y, cardWidth, cardHeight, 16);
       ctx.fill();
+      ctx.restore(); // Restore before stroking so shadow doesn't apply to stroke
 
-      ctx.strokeStyle = "#e2e8f0";
-      ctx.lineWidth = 1;
+      // Card Border
+      ctx.strokeStyle = "#f4f4f5";
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
       let innerY = y + cardPadding;
 
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 16px system-ui, -apple-system, sans-serif";
+      // Card Header
+      ctx.fillStyle = "#18181b";
+      ctx.font = "800 18px system-ui, -apple-system, sans-serif";
       ctx.fillText(p?.participantName || "Participant", cardX + cardPadding, innerY + 16);
 
-      ctx.fillStyle = "#64748b";
-      ctx.font = "11px system-ui, -apple-system, sans-serif";
-      ctx.fillText("Individual Breakdown", cardX + cardPadding, innerY + 32);
+      ctx.fillStyle = "#a1a1aa";
+      ctx.font = "500 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText("Individual Breakdown", cardX + cardPadding, innerY + 36);
 
       innerY += cardHeaderHeight;
 
-      ctx.strokeStyle = "#f1f5f9";
+      // Soft Divider
+      ctx.strokeStyle = "#f4f4f5";
       ctx.beginPath();
       ctx.moveTo(cardX + cardPadding, innerY);
       ctx.lineTo(cardX + cardWidth - cardPadding, innerY);
       ctx.stroke();
 
-      innerY += 12;
+      innerY += 16;
 
       const pItems = p?.items || [];
       if (pItems.length === 0) {
-        ctx.fillStyle = "#94a3b8";
-        ctx.font = "italic 12px system-ui, -apple-system, sans-serif";
+        ctx.fillStyle = "#a1a1aa";
+        ctx.font = "italic 13px system-ui, -apple-system, sans-serif";
         ctx.fillText("No items assigned", cardX + cardPadding, innerY + 16);
         innerY += itemRowHeight;
       } else {
@@ -354,20 +389,20 @@ export async function exportAllParticipantsSummaryImage(
           const percentageShare =
             totalPrice !== 0 ? Math.abs((shareCost / totalPrice) * 100) : 0;
 
-          ctx.fillStyle = "#0f172a";
-          ctx.font = "500 13px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = "#27272a";
+          ctx.font = "600 14px system-ui, -apple-system, sans-serif";
           ctx.fillText(item?.itemName || "Item", cardX + cardPadding, innerY + 12);
 
-          ctx.fillStyle = "#64748b";
-          ctx.font = "11px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = "#71717a";
+          ctx.font = "400 12px system-ui, -apple-system, sans-serif";
           let subText = `${item?.quantity || 1} x ₱${(item?.unitPrice || 0).toFixed(2)}`;
           if (item?.type === "misc") {
             subText = `[Misc] ${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
           }
-          ctx.fillText(subText, cardX + cardPadding, innerY + 26);
+          ctx.fillText(subText, cardX + cardPadding, innerY + 28);
 
-          ctx.fillStyle = "#0f172a";
-          ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
+          ctx.fillStyle = "#18181b";
+          ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
           const costText = `₱${shareCost.toLocaleString("en-PH", {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
@@ -379,50 +414,61 @@ export async function exportAllParticipantsSummaryImage(
         });
       }
 
-      ctx.strokeStyle = "#f1f5f9";
+      // Pre-Total Divider (Dashed for better aesthetics)
+      ctx.save();
+      ctx.strokeStyle = "#e4e4e7";
+      ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(cardX + cardPadding, innerY);
       ctx.lineTo(cardX + cardWidth - cardPadding, innerY);
       ctx.stroke();
+      ctx.restore();
 
-      innerY += 16;
+      innerY += 20;
 
-      ctx.fillStyle = "#64748b";
-      ctx.font = "600 11px system-ui, -apple-system, sans-serif";
-      ctx.fillText("TOTAL SHARE", cardX + cardPadding, innerY + 10);
+      ctx.fillStyle = "#71717a";
+      ctx.font = "700 11px system-ui, -apple-system, sans-serif";
+      ctx.fillText("TOTAL SHARE", cardX + cardPadding, innerY + 14);
 
-      ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 16px system-ui, -apple-system, sans-serif";
+      ctx.fillStyle = "#18181b";
+      ctx.font = "900 18px system-ui, -apple-system, sans-serif";
       const totalShare = p?.totalShareCost || 0;
       const subTotalText = `₱${totalShare.toLocaleString("en-PH", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`;
       const subTotalWidth = ctx.measureText(subTotalText).width;
-      ctx.fillText(subTotalText, cardX + cardWidth - cardPadding - subTotalWidth, innerY + 10);
+      ctx.fillText(subTotalText, cardX + cardWidth - cardPadding - subTotalWidth, innerY + 16);
 
       y += cardHeight + cardGap;
     });
 
-    // Grand Total Card
+    // Grand Total Card (Executive Style)
     const grandTotalWidth = width - padding * 2;
-    ctx.fillStyle = "#0f172a";
+    
+    ctx.save();
+    ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+    ctx.shadowBlur = 20;
+    ctx.shadowOffsetY = 10;
+    
+    ctx.fillStyle = "#18181b"; // Deep Zinc
     ctx.beginPath();
-    ctx.roundRect(padding, y, grandTotalWidth, 64, 16);
+    ctx.roundRect(padding, y, grandTotalWidth, 72, 16);
     ctx.fill();
+    ctx.restore();
 
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "600 11px system-ui, -apple-system, sans-serif";
-    ctx.fillText("GRAND TOTAL", padding + 24, y + 36);
+    ctx.fillStyle = "#a1a1aa";
+    ctx.font = "700 12px system-ui, -apple-system, sans-serif";
+    ctx.fillText("GRAND TOTAL", padding + 28, y + 40);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 20px system-ui, -apple-system, sans-serif";
+    ctx.font = "900 24px system-ui, -apple-system, sans-serif";
     const grandTotalStr = `₱${grandTotalCost.toLocaleString("en-PH", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
     const grandTotalW = ctx.measureText(grandTotalStr).width;
-    ctx.fillText(grandTotalStr, width - padding - 24 - grandTotalW, y + 38);
+    ctx.fillText(grandTotalStr, width - padding - 28 - grandTotalW, y + 44);
 
     await triggerDownload(canvas, "receipt-summary-all.png");
   } catch (err) {
