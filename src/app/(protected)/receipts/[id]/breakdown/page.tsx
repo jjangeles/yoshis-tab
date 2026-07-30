@@ -79,7 +79,7 @@ export default async function ReceiptBreakdownPage({ params }: BreakdownPageProp
             Individual share summaries per participant
           </p>
         </div>
-        
+
         <Link
           href={`/receipts/${receipt.id}`}
           className="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
@@ -90,6 +90,8 @@ export default async function ReceiptBreakdownPage({ params }: BreakdownPageProp
 
       {/* Participant Breakdown Tabs */}
       <ParticipantTabs
+        merchantName={receipt.merchant_name}
+        receiptDate={receipt.receipt_date}
         assignedParticipants={assignedParticipants}
         receiptItems={receipt.receipt_items || []}
       />

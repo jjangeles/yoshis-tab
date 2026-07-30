@@ -1,25 +1,16 @@
 "use client";
 
 import { useState } from "react";
-
-interface ItemShare {
-  itemId: number;
-  itemName: string;
-  quantity: number;
-  unitPrice: number;
-  totalPrice: number;
-  shareCost: number;
-  type: "item" | "misc";
-}
-
-interface ParticipantShare {
-  participantId: string;
-  participantName: string;
-  items: ItemShare[];
-  totalShareCost: number;
-}
+import {
+  ParticipantShare,
+  exportSingleParticipantImage,
+  exportAllParticipantsSummaryImage,
+} from "@/lib/receiptExporter";
+import { Download } from "lucide-react";
 
 interface ParticipantTabsProps {
+  merchantName?: string | null;
+  receiptDate?: string | null;
   assignedParticipants: { id: string; name: string }[];
   receiptItems: {
     id: number;
@@ -33,12 +24,15 @@ interface ParticipantTabsProps {
 }
 
 export default function ParticipantTabs({
+  merchantName,
+  receiptDate,
   assignedParticipants,
   receiptItems,
 }: ParticipantTabsProps) {
   const [activeTabId, setActiveTabId] = useState<string>(
     assignedParticipants[0]?.id || ""
   );
+  const [isGenerating, setIsGenerating] = useState(false);
 
   if (assignedParticipants.length === 0) {
     return (
@@ -81,14 +75,64 @@ export default function ParticipantTabs({
 
   const activeParticipant = participantShares[activeTabId];
 
+  // Action Handlers
+  const handleDownloadSingleImage = () => {
+    if (!activeParticipant) return;
+
+    setIsGenerating(true);
+
+    try {
+      exportSingleParticipantImage(activeParticipant, {
+        merchantName,
+        receiptDate,
+      });
+    } catch (err) {
+      console.error("Failed to generate image:", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadAllSummary = () => {
+    setIsGenerating(true);
+
+    try {
+      exportAllParticipantsSummaryImage(
+        Object.values(participantShares),
+        {
+          merchantName,
+          receiptDate,
+        }
+      );
+    } catch (err) {
+      console.error("Failed to generate summary image:", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="rounded-[2rem] bg-white/95 p-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95">
-      <h2 className="text-md font-semibold text-slate-950 dark:text-slate-50">
-        Participant Breakdowns
-      </h2>
-      <p className="mb-4 text-xs text-slate-600 dark:text-slate-400">
-        View individual cost breakdown per participant.
-      </p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-md font-semibold text-slate-950 dark:text-slate-50">
+            Participant Breakdowns
+          </h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400">
+            View individual cost breakdown per participant.
+          </p>
+        </div>
+
+        {/* Global Download All Button */}
+        <button
+          type="button"
+          onClick={handleDownloadAllSummary}
+          disabled={isGenerating}
+          className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-50 dark:text-slate-950 dark:hover:bg-slate-200"
+        >
+          <Download />
+        </button>
+      </div>
 
       {/* Scrollable Tab Headers */}
       <div className="no-scrollbar flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
@@ -106,9 +150,7 @@ export default function ParticipantTabs({
               }`}
             >
               <p>{p.name}</p>
-              <p
-                className={`text-[10px]`}
-              >
+              <p className="text-[10px]">
                 ₱
                 {share?.totalShareCost.toLocaleString("en-PH", {
                   minimumFractionDigits: 2,
@@ -120,13 +162,12 @@ export default function ParticipantTabs({
         })}
       </div>
 
-      {/* Tab Content Panel */}
+      {/* Active Tab Panel */}
       {activeParticipant && (
         <div className="mt-4 space-y-3">
           {activeParticipant.items.length > 0 ? (
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
               {activeParticipant.items.map((item) => {
-                // Calculate percentage share for misc items (handles zero division safely)
                 const percentageShare =
                   item.totalPrice && item.totalPrice !== 0
                     ? Math.abs((item.shareCost / item.totalPrice) * 100)
@@ -145,7 +186,7 @@ export default function ParticipantTabs({
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {item.type === "misc" && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] mr-2 font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                          <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
                             Misc
                           </span>
                         )}
@@ -192,18 +233,24 @@ export default function ParticipantTabs({
             </p>
           )}
 
-          {/* Participant Total Summary */}
-          <div className="flex items-center justify-between border-t border-slate-200 pt-3 dark:border-slate-800">
-            <span className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {activeParticipant.participantName}'s Total
-            </span>
-            <span className="text-lg font-bold text-slate-950 dark:text-slate-50">
-              ₱
-              {activeParticipant.totalShareCost.toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
+          {/* Bottom Card Summary & Download Button */}
+          <div className="flex items-center justify-between gap-5 border-t border-slate-200 pt-3 dark:border-slate-800">
+            <p className="text-2xl font-semibold">
+              Total
+            </p>
+
+            <div className="text-right">
+              <span className="block text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {activeParticipant.participantName}'s Total
+              </span>
+              <span className="text-lg font-bold text-slate-950 dark:text-slate-50">
+                ₱
+                {activeParticipant.totalShareCost.toLocaleString("en-PH", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
           </div>
         </div>
       )}
