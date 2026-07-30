@@ -19,7 +19,7 @@ interface ParticipantTabsProps {
     unit_price: number;
     total_price: number;
     type?: string | null;
-    misc_calc_type: string;
+    misc_calc_type: string | null;
     item_assignments?: { participant_id: number; share_cost: number }[];
   }[];
 }
