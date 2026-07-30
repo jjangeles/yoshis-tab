@@ -62,3 +62,18 @@ textarea,
 select {
   font: inherit;
 }
+
+@keyframes waveDots {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-15px);
+    opacity: 1;
+  }
+}
+
+.animate-wave-dots {
+  animation: waveDots 1s ease-in-out infinite;
+}

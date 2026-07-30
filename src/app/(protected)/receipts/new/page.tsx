@@ -241,20 +241,29 @@ export default function NewReceiptPage() {
               </h2>
             </div>
 
-            <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-              {parsing ? (
-                <div 
-                  key="parsing-bar"
-                  className="h-full w-full animate-pulse rounded-full bg-slate-950 dark:bg-slate-100" 
+            {parsing ? (
+              <div className="mt-6 flex h-12 items-center justify-center gap-1">
+                <span
+                  className="h-2 w-2 animate-wave-dots rounded-full bg-slate-950 dark:bg-slate-100"
+                  style={{ animationDelay: "-0.3s" }}
                 />
-              ) : (
+                <span
+                  className="h-2 w-2 animate-wave-dots rounded-full bg-slate-950 dark:bg-slate-100"
+                  style={{ animationDelay: "-0.15s" }}
+                />
+                <span
+                  className="h-2 w-2 animate-wave-dots rounded-full bg-slate-950 dark:bg-slate-100"
+                />
+              </div>
+            ) : (
+              <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                 <div
                   key="upload-bar"
-                  className="h-full rounded-full bg-slate-950 transition-all duration-300 dark:bg-slate-100"
+                  className="h-full animate-pulse rounded-full bg-slate-950 transition-all duration-300 dark:bg-slate-100"
                   style={{ width: `${uploadProgress}%` }}
                 />
-              )}
-            </div>
+              </div>
+            )}
 
             <p className="mt-4 text-center text-xs text-slate-400">
               Please wait...
