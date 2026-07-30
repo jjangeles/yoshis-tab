@@ -106,6 +106,8 @@ export async function POST(
     quantity: item.quantity,
     unit_price: item.unit_price,
     total_price: item.total_price,
+    type: item.type,
+    misc_calc_type: item.type === "misc" ? "PROPORTIONAL" : "EVEN",
   }));
 
   const { error: itemsInsertError } = await supabase

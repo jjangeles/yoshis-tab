@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-3.5-flash";
@@ -8,6 +8,7 @@ interface ParsedItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  type: "item" | "misc";
 }
 
 interface ParsedReceipt {
@@ -33,12 +34,10 @@ function parseNumber(value: unknown): number | null {
 function cleanJsonText(raw: string): string {
   let cleaned = raw.trim();
 
-  // Remove markdown code fences if present.
   if (cleaned.startsWith("```")) {
     cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
   }
 
-  // If the response contains surrounding text, extract the first JSON object.
   if (!cleaned.startsWith("{")) {
     const firstBrace = cleaned.indexOf("{");
     const lastBrace = cleaned.lastIndexOf("}");
@@ -71,35 +70,63 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
   }
 
   const prompt = `
-    Extract the receipt data from the image at the following URL. Return valid JSON only with these fields:
-    {
-      "merchant_name": string,
-      "receipt_date": string | null,
-      "items": [
-        {"name": string, "quantity": number, "unit_price": number, "total_price": number, "type": "item" | "misc"}
-      ],
-      "total": number
-    }
-    
-    If merchant name is unavailable do not guess just put "NAME UNAVAILABLE" on merchant name
-    Use null for missing numeric values. Do not include any extra properties.
-    Tax and discount should be included under items when it is not yet added/deducted
-    to the item values you can determine this if all the sum of the receipt items already equals to the total.
-    Regular items/products will have type "item" and service charge, discount and tax should have "misc"
-    Return negative value for discount.
+    Extract receipt data from the provided image into JSON.
 
-    Format merchant name to be in title case (e.g., "Starbucks Coffee" instead of "starbucks coffee").
+    ### CRITICAL ITEM TYPE RULES:
+    1. Standard purchased products, food, or drinks MUST have "type": "item".
+    2. Non-product financial line items MUST have "type": "misc". This includes:
+       - Tax / VAT / GST
+       - Service Charges / Delivery Fees / Tips
+       - Discounts / Promos / Vouchers (Must have negative unit_price and total_price, e.g. -50.00)
+       - Rounding adjustments
 
-    Image URL: ${imageUrl}
+    Format merchant_name in Title Case.
   `;
 
   const inlineData = await fetchImageInlineData(imageUrl);
   const client = new GoogleGenerativeAI(GEMINI_API_KEY);
-  const model = client.getGenerativeModel({ model: GEMINI_MODEL });
-  const result = await model.generateContent([
-    {
-      text: prompt,
+
+  // ✅ Enforce Structured JSON Schema on Gemini API level
+  const model = client.getGenerativeModel({
+    model: GEMINI_MODEL,
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: SchemaType.OBJECT,
+        properties: {
+          merchant_name: { type: SchemaType.STRING },
+          receipt_date: { type: SchemaType.STRING, nullable: true },
+          total: { type: SchemaType.NUMBER },
+          subtotal: { type: SchemaType.NUMBER, nullable: true },
+          tax: { type: SchemaType.NUMBER, nullable: true },
+          service_charge: { type: SchemaType.NUMBER, nullable: true },
+          discount: { type: SchemaType.NUMBER, nullable: true },
+          items: {
+            type: SchemaType.ARRAY,
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                name: { type: SchemaType.STRING },
+                quantity: { type: SchemaType.NUMBER },
+                unit_price: { type: SchemaType.NUMBER },
+                total_price: { type: SchemaType.NUMBER },
+                type: {
+                  type: SchemaType.STRING,
+                  format: "enum",
+                  enum: ["item", "misc"],
+                },
+              },
+              required: ["name", "quantity", "unit_price", "total_price", "type"],
+            },
+          },
+        },
+        required: ["merchant_name", "total", "items"],
+      },
     },
+  });
+
+  const result = await model.generateContent([
+    { text: prompt },
     {
       inlineData: {
         mimeType: inlineData.mimeType,
@@ -108,20 +135,14 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
     },
   ]);
 
-  const candidate = result.response?.candidates?.[0];
-  const textPart = candidate?.content?.parts?.find(
-    (part): part is { text: string } => typeof (part as any)?.text === "string"
-  );
-  const text = textPart?.text;
+  const text = result.response?.text();
 
-  if (typeof text !== "string") {
+  if (!text) {
     throw new Error("Gemini response did not contain text output.");
   }
 
-  const rawResponse = text.trim();
-  const cleanedResponse = cleanJsonText(rawResponse);
-
-  let parsed: unknown;
+  const cleanedResponse = cleanJsonText(text);
+  let parsed: any;
 
   try {
     parsed = JSON.parse(cleanedResponse);
@@ -129,31 +150,22 @@ export async function parseReceiptImage(imageUrl: string): Promise<ParsedReceipt
     throw new Error("Gemini response was not valid JSON.");
   }
 
-  if (
-    typeof parsed !== "object" ||
-    parsed === null ||
-    typeof (parsed as any).merchant_name !== "string" ||
-    typeof (parsed as any).total !== "number" ||
-    !Array.isArray((parsed as any).items)
-  ) {
-    throw new Error("Gemini response did not match expected receipt schema.");
-  }
-
-  const items = (parsed as any).items.map((item: any) => ({
+  const items: ParsedItem[] = (parsed.items || []).map((item: any) => ({
     name: String(item.name || ""),
     quantity: Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1,
     unit_price: parseNumber(item.unit_price) ?? 0,
     total_price: parseNumber(item.total_price) ?? 0,
+    type: item.type === "misc" ? "misc" : "item", // ✅ Preserved and safely typed!
   }));
 
   return {
-    merchant_name: String((parsed as any).merchant_name || ""),
-    receipt_date: typeof (parsed as any).receipt_date === "string" ? (parsed as any).receipt_date : null,
+    merchant_name: String(parsed.merchant_name || ""),
+    receipt_date: typeof parsed.receipt_date === "string" ? parsed.receipt_date : null,
     items,
-    subtotal: parseNumber((parsed as any).subtotal),
-    tax: parseNumber((parsed as any).tax),
-    service_charge: parseNumber((parsed as any).service_charge),
-    discount: parseNumber((parsed as any).discount),
-    total: Number((parsed as any).total),
+    subtotal: parseNumber(parsed.subtotal),
+    tax: parseNumber(parsed.tax),
+    service_charge: parseNumber(parsed.service_charge),
+    discount: parseNumber(parsed.discount),
+    total: Number(parsed.total),
   };
 }
