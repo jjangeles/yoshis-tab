@@ -125,42 +125,66 @@ export default function ParticipantTabs({
         <div className="mt-4 space-y-3">
           {activeParticipant.items.length > 0 ? (
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {activeParticipant.items.map((item) => (
-                <li
-                  key={item.itemId}
-                  className="flex items-center justify-between py-2.5 text-sm"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-slate-900 dark:text-slate-100">
-                        {item.itemName}
-                      </p>
-                      {item.type === "misc" && (
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                          Misc
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {item.quantity} x ₱
-                      {item.unitPrice.toLocaleString("en-PH", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
+              {activeParticipant.items.map((item) => {
+                // Calculate percentage share for misc items (handles zero division safely)
+                const percentageShare =
+                  item.totalPrice && item.totalPrice !== 0
+                    ? Math.abs((item.shareCost / item.totalPrice) * 100)
+                    : 0;
 
-                  <div className="text-right">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">
-                      ₱
-                      {item.shareCost.toLocaleString("en-PH", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                </li>
-              ))}
+                return (
+                  <li
+                    key={item.itemId}
+                    className="flex items-center justify-between py-2.5 text-sm"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">
+                          {item.itemName}
+                        </p>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {item.type === "misc" && (
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] mr-2 font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            Misc
+                          </span>
+                        )}
+                        {item.type === "misc" ? (
+                          <>
+                            {percentageShare.toLocaleString("en-PH", {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 2,
+                            })}
+                            % of ₱
+                            {item.totalPrice.toLocaleString("en-PH", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </>
+                        ) : (
+                          <>
+                            {item.quantity} x ₱
+                            {item.unitPrice.toLocaleString("en-PH", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </>
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                        ₱
+                        {item.shareCost.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <p className="py-4 text-center text-xs italic text-slate-400 dark:text-slate-500">
