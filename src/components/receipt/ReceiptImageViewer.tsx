@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Image, X } from "lucide-react";
 
 export default function ReceiptImageViewer({
   imageUrl,
@@ -37,9 +37,9 @@ export default function ReceiptImageViewer({
     <>
       <button
         onClick={handleOpen}
-        className="flex items-center justify-center rounded-3xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+        className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold bg-white/95 hover:bg-slate-50 dark:bg-slate-900/95 dark:hover:bg-slate-800/80 shadow-sm shadow-slate-900/5 transition"
       >
-        View Image
+        <Image size={25} />
       </button>
 
       {open && (

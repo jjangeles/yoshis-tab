@@ -6,6 +6,7 @@ import ReceiptImageViewer from "@/components/receipt/ReceiptImageViewer";
 import ReceiptEditModal from "@/components/receipt/ReceiptEditModal";
 import ReceiptItemCard from "@/components/receipt/ReceiptItemCard";
 import ReceiptItemList from "@/components/receipt/ReceiptItemList";
+import Link from "next/link";
 
 interface ReceiptPageProps {
   params: Promise<{
@@ -83,7 +84,16 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
   return (
     <div className="space-y-6 pb-10 pt-4">
       <section className="space-y-4">
+        <Link
+          href={`/receipts/${receipt.id}`}
+          className="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        >
+          ← Back to Items
+        </Link>
+      </section>
+      <section className="space-y-4">
         <div className="rounded-[2rem] bg-white/95 px-5 py-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
+        
           <div className="relative flex flex-col gap-3">
             
             {/* Merchant & Date Header */}
@@ -152,6 +162,15 @@ export default async function ReceiptPage({ params }: ReceiptPageProps) {
             </div>
 
           </div>
+        </div>
+        
+        <div className="flex items-center justify-center">
+          <Link
+            href={`/receipts/${receipt.id}/breakdown`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold text-white shadow-sm dark:bg-slate-50 dark:text-slate-950"
+          >
+            View Bill Breakdown
+          </Link>
         </div>
 
         {/* Receipt Items Section */}
