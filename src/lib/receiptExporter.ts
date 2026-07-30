@@ -6,6 +6,7 @@ export interface ItemShare {
   totalPrice: number;
   shareCost: number;
   type: "item" | "misc";
+  misc_calc_type: string;
 }
 
 export interface ParticipantShare {

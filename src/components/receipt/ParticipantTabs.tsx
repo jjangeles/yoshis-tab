@@ -19,6 +19,7 @@ interface ParticipantTabsProps {
     unit_price: number;
     total_price: number;
     type?: string | null;
+    misc_calc_type: string;
     item_assignments?: { participant_id: number; share_cost: number }[];
   }[];
 }
@@ -73,6 +74,7 @@ export default function ParticipantTabs({
           unitPrice: item.unit_price,
           totalPrice: item.total_price,
           shareCost,
+          misc_calc_type: item.misc_calc_type,
           type: (item.type as "item" | "misc") || "item",
         });
         participantShares[pId].totalShareCost += shareCost;
@@ -201,8 +203,8 @@ export default function ParticipantTabs({
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {item.type === "misc" && (
-                          <span className="mr-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
-                            Misc
+                          <span className="mr-2 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800 dark:bg-green-950/60 dark:text-green-300">
+                            {item.misc_calc_type == 'even' ? 'EVEN' : 'RELATIVE'}
                           </span>
                         )}
                         {item.type === "misc" ? (
