@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { updateMiscCalculationType, MiscCalculationType } from "@/app/receipts/actions";
 import { Participant, ReceiptItemData } from "./ReceiptItemList";
 
@@ -18,12 +18,20 @@ export default function MiscItemCard({
   costAssignments,
 }: MiscItemCardProps) {
   const [isPending, startTransition] = useTransition();
+  const [pendingStrategy, setPendingStrategy] = useState<MiscCalculationType | null>(null);
+
   const currentStrategy: MiscCalculationType = item.miscCalcType || "EVEN";
 
   const handleStrategyChange = (newStrategy: MiscCalculationType) => {
     if (newStrategy === currentStrategy || isPending) return;
+
+    setPendingStrategy(newStrategy);
     startTransition(async () => {
-      await updateMiscCalculationType(item.id, newStrategy, receiptId);
+      try {
+        await updateMiscCalculationType(item.id, newStrategy, receiptId);
+      } finally {
+        setPendingStrategy(null);
+      }
     });
   };
 
@@ -32,7 +40,7 @@ export default function MiscItemCard({
   );
 
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+    <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 transition-opacity">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="flex items-center gap-2">
@@ -51,46 +59,53 @@ export default function MiscItemCard({
       </div>
 
       {/* Computation Mode Toggle */}
-      <div className="mt-3.5 flex items-center justify-between rounded-xl bg-white p-1.5 border border-slate-200/80 dark:bg-slate-950 dark:border-slate-800">
+      <div className="mt-3.5 flex gap-2 items-center justify-between rounded-xl bg-white p-1.5 border border-slate-200/80 dark:bg-slate-950 dark:border-slate-800">
         <span className="pl-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
           Split method:
         </span>
-        <div className="flex gap-1">
+        <div className="flex-1 flex gap-1">
           <button
             type="button"
             disabled={isPending}
             onClick={() => handleStrategyChange("EVEN")}
-            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-70 ${
               currentStrategy === "EVEN"
                 ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950"
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             }`}
           >
+            {isPending && pendingStrategy === "EVEN" && <Spinner />}
             Even
           </button>
+
           <button
             type="button"
             disabled={isPending}
             onClick={() => handleStrategyChange("PROPORTIONAL")}
-            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-70 ${
               currentStrategy === "PROPORTIONAL"
                 ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950"
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             }`}
           >
-            Proportional
+            {isPending && pendingStrategy === "PROPORTIONAL" && <Spinner />}
+            Relative
           </button>
         </div>
       </div>
 
       {/* Breakdown Badges */}
-      <div className="mt-3 flex flex-wrap gap-1.5">
+      <div
+        className={`mt-3 flex flex-wrap gap-1.5 transition-opacity duration-200 ${
+          isPending ? "opacity-50" : "opacity-100"
+        }`}
+      >
         {activeParticipantIds.length > 0 ? (
           assignedParticipants
             .filter((p) => (costAssignments[p.id] ?? 0) !== 0)
             .map((p) => {
               const cost = costAssignments[p.id];
-              const pct = item.total_price!== 0 ? (cost / item.total_price) * 100 : 0;
+              const pct = item.total_price !== 0 ? (cost / item.total_price) * 100 : 0;
 
               return (
                 <span
@@ -111,5 +126,30 @@ export default function MiscItemCard({
         )}
       </div>
     </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg
+      className="h-3 w-3 animate-spin text-current"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
+    </svg>
   );
 }
