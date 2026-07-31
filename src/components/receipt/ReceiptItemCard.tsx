@@ -46,6 +46,18 @@ export default function ReceiptItemCard({
     setLocalCostAssignments(initialCostAssignments);
   }, [initialCostAssignments]);
 
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
   const handleOpenModal = () => {
     // Populate modal shares based on current active local costs
     const defaultShares: ItemAssignmentMap = {};
