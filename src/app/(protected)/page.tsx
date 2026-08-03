@@ -13,6 +13,45 @@ export default async function DashboardPage() {
     .eq("owner_id", user.id)
     .order("receipt_date", { ascending: false });
 
+  const receiptIds = receipts?.map((receipt) => receipt.id) ?? [];
+
+  const { data: receiptParticipants } = receiptIds.length
+    ? await supabase
+        .from("receipt_participants")
+        .select("receipt_id, participant_id")
+        .in("receipt_id", receiptIds)
+    : { data: [] as { receipt_id: string; participant_id: number }[] };
+
+  const participantIds = Array.from(
+    new Set((receiptParticipants || []).map((entry) => entry.participant_id))
+  );
+
+  const { data: participants } = participantIds.length
+    ? await supabase
+        .from("participants")
+        .select("id, name")
+        .in("id", participantIds)
+        .eq("user_id", user.id)
+    : { data: [] as { id: number; name: string }[] };
+
+  const participantNameById = new Map(
+    (participants || []).map((participant) => [participant.id, participant.name])
+  );
+
+  const participantsByReceiptId = (receiptParticipants || []).reduce(
+    (accumulator, entry) => {
+      const existing = accumulator[entry.receipt_id] ?? [];
+      const participantName = participantNameById.get(entry.participant_id);
+
+      if (participantName) {
+        accumulator[entry.receipt_id] = [...existing, participantName];
+      }
+
+      return accumulator;
+    },
+    {} as Record<string, string[]>
+  );
+
   return (
     <div className="space-y-6 pb-10 pt-4">
       <section className="">
@@ -33,38 +72,63 @@ export default async function DashboardPage() {
 
       {receipts && receipts.length > 0 ? (
         <section className="space-y-3">
-          {receipts.map((receipt: Database["public"]["Tables"]["receipts"]["Row"]) => (
-            <Link
-              key={receipt.id}
-              href={`/receipts/${receipt.id}`}
-              className="group flex items-center justify-between rounded-[2rem] bg-white/95 px-4 py-5 text-left shadow-sm shadow-slate-900/5 transition hover:bg-slate-50 dark:bg-slate-900/95 dark:hover:bg-slate-800"
-            >
-              <div>
-                <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
-                  {receipt.merchant_name || "Untitled Receipt"}
-                </p>
-                <p className="text-xs leading-6 text-slate-500 dark:text-slate-600">
-                  {
-                    receipt.receipt_date
-                      ? new Date(receipt.receipt_date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "No date"
-                  }
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-base text-xl font-semibold text-slate-950 dark:text-slate-50">
-                  ₱ {receipt.total.toLocaleString("en-PH", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {receipts.map((receipt: Database["public"]["Tables"]["receipts"]["Row"]) => {
+            const receiptParticipants = participantsByReceiptId[receipt.id] ?? [];
+
+            return (
+              <Link
+                key={receipt.id}
+                href={`/receipts/${receipt.id}`}
+                className="group flex flex-col rounded-[2rem] bg-white/95 px-4 pt-4 pb-2 text-left shadow-sm shadow-slate-900/5 transition hover:bg-slate-50 dark:bg-slate-900/95 dark:hover:bg-slate-800"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
+                      {receipt.merchant_name || "Untitled Receipt"}
+                    </p>
+                    <p className="text-xs leading-6 text-slate-500 dark:text-slate-600">
+                      {
+                        receipt.receipt_date
+                          ? new Date(receipt.receipt_date).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "No date"
+                      }
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-base text-xl font-semibold text-slate-950 dark:text-slate-50">
+                      ₱ {receipt.total.toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center">
+                  {receiptParticipants.length > 0 ? (
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {receiptParticipants.sort((a, b) => a.localeCompare(b)).map((participantName) => (
+                        <span
+                          key={`${receipt.id}-${participantName}`}
+                          className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                        >
+                          {participantName}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-[11px] italic text-slate-400 dark:text-slate-500">
+                      No participants
+                    </span>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </section>
       ) : (
         <section className="rounded-[2rem] bg-white/95 p-6 text-center shadow-sm shadow-slate-900/5 dark:bg-slate-900/95">
