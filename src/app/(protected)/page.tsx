@@ -109,25 +109,27 @@ export default async function DashboardPage() {
                 </div>
 
                 <div className="flex items-center justify-center">
-                    {receiptParticipants.length > 0 ? (<>
-                      <span className="rounded-full mr-2 text-[10px] font-semibold text-slate-500 dark:text-slate-600">
-                        Participants: 
+                  {receiptParticipants.length > 0 ? (
+                    <>
+                      <span className="rounded-full text-[10px] font-semibold text-slate-500 dark:text-slate-600">
+                        Participants:
                       </span>
-                      <div className="text-semibold flex gap-1">
-                        {receiptParticipants.sort((a, b) => a.localeCompare(b)).map((participantName) => (
-                          <span
-                            key={`${receipt.id}-${participantName}`}
-                            className="rounded-full text-[10px] font-semibold text-slate-500 dark:text-slate-600"
-                          >
-                            {participantName}
-                          </span>
-                        ))}
+                      <div className="flex text-[10px] font-semibold text-slate-500 dark:text-slate-600">
+                        {[...receiptParticipants]
+                          .sort((a, b) => a.localeCompare(b))
+                          .map((participantName, index, arr) => (
+                            <span className="ml-1" key={`${receipt.id}-${participantName}`}>
+                              {participantName}
+                              {index < arr.length - 1 && ", "}
+                            </span>
+                          ))}
                       </div>
-                    </>) : (
-                      <div className="text-[11px] italic text-slate-400 dark:text-slate-500">
-                        No participants
-                      </div>
-                    )}
+                    </>
+                  ) : (
+                    <div className="text-[11px] italic text-slate-400 dark:text-slate-500">
+                      No participants
+                    </div>
+                  )}
                 </div>
               </Link>
             );
