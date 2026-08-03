@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { Pencil } from "lucide-react";
 import { saveItemAssignments } from "@/app/receipts/actions";
+import type { ReceiptItemData } from "./ReceiptItemList";
 
 interface Participant {
   id: string;
@@ -13,16 +15,11 @@ interface ItemAssignmentMap {
 }
 
 interface ReceiptItemCardProps {
-  item: {
-    id: number;
-    name: string;
-    quantity: number;
-    unit_price: number;
-    total_price: number;
-  };
+  item: ReceiptItemData;
   receiptId: string;
   assignedReceiptParticipants: Participant[];
   initialCostAssignments: Record<string, number>;
+  onEdit: (item: ReceiptItemData) => void;
 }
 
 export default function ReceiptItemCard({
@@ -30,6 +27,7 @@ export default function ReceiptItemCard({
   receiptId,
   assignedReceiptParticipants,
   initialCostAssignments,
+  onEdit,
 }: ReceiptItemCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sharesMap, setSharesMap] = useState<ItemAssignmentMap>({});
@@ -125,7 +123,7 @@ export default function ReceiptItemCard({
             : "bg-white/95 border-transparent hover:bg-slate-50 dark:bg-slate-900/95 dark:hover:bg-slate-800/80"
         }`}
       >
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-start justify-between gap-2">
           <div>
             <div className="flex items-center gap-1.5">
               <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
@@ -137,23 +135,37 @@ export default function ReceiptItemCard({
             </p>
           </div>
 
-          <div className="text-right">
+          <div className="flex items-start gap-2">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onEdit(item);
+              }}
+              aria-label={`Edit ${item.name || "item"}`}
+              className="rounded-full p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
+            >
+              <Pencil size={14} />
+            </button>
+
+            <div className="text-right">
             <p className="text-base font-semibold text-slate-950 dark:text-slate-50">
               ₱{item.total_price.toFixed(2)}
             </p>
-            <span
-              className={`text-[10px] underline ${
-                isUnassigned
-                  ? "font-medium text-amber-700 dark:text-amber-400"
-                  : "text-slate-500"
-              }`}
-            >
-              {!isUnassigned
-                && `${activeParticipantIds.length} ${
-                    activeParticipantIds.length === 1 ? "person" : "people"
-                  } assigned`
-              }
-            </span>
+              <span
+                className={`text-[10px] underline ${
+                  isUnassigned
+                    ? "font-medium text-amber-700 dark:text-amber-400"
+                    : "text-slate-500"
+                }`}
+              >
+                {!isUnassigned
+                  && `${activeParticipantIds.length} ${
+                      activeParticipantIds.length === 1 ? "person" : "people"
+                    } assigned`
+                }
+              </span>
+            </div>
           </div>
         </div>
 

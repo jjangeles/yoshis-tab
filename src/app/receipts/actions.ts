@@ -139,6 +139,179 @@ export async function saveItemAssignments(
   revalidatePath(`/receipts/${receiptId}`);
 }
 
+async function syncReceiptTotals(receiptId: string) {
+  const supabase = await createServerSupabase();
+
+  const { data: items, error } = await supabase
+    .from("receipt_items")
+    .select("total_price")
+    .eq("receipt_id", receiptId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const total = (items || []).reduce((sum, item) => {
+    return sum + Number(item.total_price || 0);
+  }, 0);
+
+  await supabase
+    .from("receipts")
+    .update({
+      subtotal: total,
+      total,
+    } as any)
+    .eq("id", receiptId);
+}
+
+export async function upsertReceiptItem(
+  receiptId: string,
+  input: {
+    id?: number;
+    name: string;
+    quantity: number;
+    unit_price: number;
+  }
+) {
+  const supabase = await createServerSupabase();
+
+  const trimmedName = input.name.trim();
+  const quantity = Math.max(1, Math.round(Number(input.quantity) || 0));
+  const unitPrice = Math.max(0, Number(input.unit_price) || 0);
+  const totalPrice = Number((quantity * unitPrice).toFixed(2));
+
+  if (!trimmedName) {
+    throw new Error("Item name is required.");
+  }
+
+  let savedItem: {
+    id: number;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+    type: "item" | "misc";
+    misc_calc_type?: "EVEN" | "PROPORTIONAL" | null;
+  } | null = null;
+
+  if (input.id) {
+    const { data: existingItem, error: existingItemError } = await supabase
+      .from("receipt_items")
+      .select("type")
+      .eq("id", input.id)
+      .single();
+
+    if (existingItemError || !existingItem) {
+      throw new Error(existingItemError?.message || "Item not found.");
+    }
+
+    const { data: currentAssignments, error: currentAssignmentsError } = await supabase
+      .from("item_assignments")
+      .select("id, share_cost")
+      .eq("receipt_item_id", input.id);
+
+    if (currentAssignmentsError) {
+      throw new Error(currentAssignmentsError.message);
+    }
+
+    const previousTotal = (currentAssignments || []).reduce((sum, assignment) => {
+      return sum + Number(assignment.share_cost || 0);
+    }, 0);
+
+    const { data: updatedItem, error: updateError } = await supabase
+      .from("receipt_items")
+      .update({
+        name: trimmedName,
+        quantity,
+        unit_price: unitPrice,
+        total_price: totalPrice,
+      } as any)
+      .eq("id", input.id)
+      .select("id, name, quantity, unit_price, total_price, type, misc_calc_type")
+      .single();
+
+    if (updateError || !updatedItem) {
+      throw new Error(updateError?.message || "Unable to update item.");
+    }
+
+    savedItem = updatedItem as any;
+
+    if (currentAssignments && currentAssignments.length > 0 && previousTotal > 0) {
+      const assignmentUpdatePromises = currentAssignments.map(async (assignment) => {
+        const nextShareCost =
+          Number(assignment.share_cost || 0) * (totalPrice / previousTotal);
+
+        const { error: assignmentUpdateError } = await supabase
+          .from("item_assignments")
+          .update({ share_cost: nextShareCost } as any)
+          .eq("id", assignment.id);
+
+        if (assignmentUpdateError) {
+          throw new Error(assignmentUpdateError.message);
+        }
+      });
+
+      await Promise.all(assignmentUpdatePromises);
+    }
+  } else {
+    const { data: insertedItem, error: insertError } = await supabase
+      .from("receipt_items")
+      .insert({
+        receipt_id: receiptId,
+        name: trimmedName,
+        quantity,
+        unit_price: unitPrice,
+        total_price: totalPrice,
+        type: "item",
+        misc_calc_type: null,
+      } as any)
+      .select("id, name, quantity, unit_price, total_price, type, misc_calc_type")
+      .single();
+
+    if (insertError || !insertedItem) {
+      throw new Error(insertError?.message || "Unable to create item.");
+    }
+
+    savedItem = insertedItem as any;
+  }
+
+  await recomputeMiscItems(receiptId);
+  await syncReceiptTotals(receiptId);
+
+  revalidatePath(`/receipts/${receiptId}`);
+
+  return savedItem;
+}
+
+export async function deleteReceiptItem(receiptItemId: number, receiptId: string) {
+  const supabase = await createServerSupabase();
+
+  const { error: assignmentDeleteError } = await supabase
+    .from("item_assignments")
+    .delete()
+    .eq("receipt_item_id", receiptItemId);
+
+  if (assignmentDeleteError) {
+    throw new Error(assignmentDeleteError.message);
+  }
+
+  const { error: deleteError } = await supabase
+    .from("receipt_items")
+    .delete()
+    .eq("id", receiptItemId);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  await recomputeMiscItems(receiptId);
+  await syncReceiptTotals(receiptId);
+
+  revalidatePath(`/receipts/${receiptId}`);
+
+  return { id: receiptItemId };
+}
+
 /**
  * Updates the computation strategy for a misc item and recomputes assignments.
  */
