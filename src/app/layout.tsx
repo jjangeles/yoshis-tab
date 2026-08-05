@@ -20,12 +20,12 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Yoshi's Tab",
+  title: "Bill Breaker",
   description: "Bill sharing made easy",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Yoshi's Tab",
+    title: "Bill Breaker",
   },
   icons: {
     icon: "/icon.png",
