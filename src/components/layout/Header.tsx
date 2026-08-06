@@ -32,10 +32,16 @@ export default function Header() {
       }
     }
 
+    function handleScroll() {
+      setOpen(false);
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
