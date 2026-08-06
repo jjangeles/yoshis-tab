@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +19,14 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      setLoading(false);
+      return;
+    }
+
     const supabase = createBrowserSupabase();
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -33,55 +43,85 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-5 py-10 text-slate-950 dark:bg-slate-950 dark:text-slate-50">
-      <main className="mx-auto w-full max-w-md space-y-6">
-        <section className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-            Get started
-          </p>
-          <h1 className="text-3xl font-semibold">Register</h1>
-          <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Create an account and start tracking receipts from your phone.
-          </p>
-        </section>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-5 py-10 text-slate-950">
+      <main className="w-full max-w-md space-y-6">
+        <form
+          onSubmit={handleRegister}
+          className="space-y-5 rounded-[1rem] bg-white/95 p-5 shadow-sm shadow-slate-900/5"
+        >
+          <div className="flex justify-center">
+            <Image
+              src="/icon.png"
+              alt="App logo"
+              width={160}
+              height={160}
+              className="rounded-2xl"
+              priority
+            />
+          </div>
 
-        <form onSubmit={handleRegister} className="space-y-4 rounded-[2rem] bg-white/95 p-6 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95 dark:shadow-none">
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">
+              Email
+            </label>
             <input
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               type="email"
               required
-              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
             />
           </div>
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">
+              Password
+            </label>
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"
               required
-              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:border-slate-500 dark:focus:ring-slate-700"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
             />
           </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-slate-700">
+              Confirm Password
+            </label>
+            <input
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              type="password"
+              required
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
+            />
+          </div>
+
           {error ? (
-            <p className="rounded-3xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300">
+            <p className="rounded-3xl bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}
             </p>
           ) : null}
+
           <button
             type="submit"
             disabled={loading}
-            className="flex h-12 w-full items-center justify-center rounded-3xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-slate-950 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Register"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-          Already have an account? <a href="/login" className="font-semibold text-slate-950 dark:text-slate-50">Login</a>
+        <p className="text-center text-sm text-slate-600">
+          Already have an account?{" "}
+          <a
+            href="/login"
+            className="font-semibold text-slate-950"
+          >
+            Login
+          </a>
         </p>
       </main>
     </div>
