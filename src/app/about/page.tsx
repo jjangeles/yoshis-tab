@@ -59,20 +59,20 @@ export default function Home() {
           {/* Left content */}
           <div className="flex-1 text-center md:text-left pt-20 md:pt-0">
             <Image
-              src="/bb-white.png"
-              alt="Bill Breaker Logo"
-              width={300}
-              height={60}
-              className="mx-auto mb-8 hidden rounded-3xl dark:block"
-              priority
-            />
-
-            <Image
               src="/bb-black.png"
               alt="Bill Breaker Logo"
               width={300}
               height={60}
-              className="mx-auto mb-8 rounded-3xl dark:hidden"
+              className="mx-auto mb-8 rounded-3xl dark:hidden md:!hidden"
+              priority
+            />
+
+            <Image
+              src="/bb-white.png"
+              alt="Bill Breaker Logo"
+              width={300}
+              height={60}
+              className="mx-auto mb-8 hidden rounded-3xl dark:block md:!hidden"
               priority
             />
 
@@ -85,7 +85,7 @@ export default function Home() {
               let AI read the items, and quickly calculate who owes what.
             </p>
 
-            <div className="w-full mt-8 flex justify-center gap-4 md:justify-start">
+            <div className="md:ml-5 ml0 w-full mt-8 flex justify-center gap-4 md:justify-start">
               <Link
                 href="/receipts/new"
                 className="rounded-2xl bg-slate-950 px-6 py-3 font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200"

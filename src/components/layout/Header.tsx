@@ -192,6 +192,16 @@ export default function Header() {
               )}
             </div>
           </>) : (<div className="flex w-full items-center justify-end gap-3">
+            <div className="hidden md:block absolute left-0">
+              <Image
+                src={theme === "dark" ? "/bb-white.png" : "/bb-black.png"}
+                alt="App logo"
+                width={250}
+                height={40}
+                className="rounded-xl"
+                priority
+              />
+            </div>
             <Link
               href="/login"
               className="
