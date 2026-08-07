@@ -8,7 +8,7 @@ export default function Home() {
       <div className="hidden md:block">
         <Header />
       </div>
-      <main className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-white">
+      <main className="relative min-h-screen overflow-x-hidden bg-white text-slate-900 dark:bg-slate-950 dark:text-white">
         {/* Hero */}
         <section className="mx-auto flex max-w-6xl flex-col items-center justify-start px-6 pt-20 md:min-h-[70vh] md:flex-row md:items-center md:justify-center md:gap-12">
           {/* Abstract background shapes */}
