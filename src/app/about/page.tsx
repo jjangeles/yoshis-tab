@@ -5,10 +5,12 @@ import Link from "next/link";
 export default function Home() {
   return (
     <>
-      <Header />
+      <div className="hidden md:block">
+        <Header />
+      </div>
       <main className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-white">
         {/* Hero */}
-        <section className="mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 md:flex-row md:gap-12">
+        <section className="mx-auto flex max-w-6xl flex-col items-center justify-start px-6 pt-20 md:min-h-screen md:flex-row md:items-center md:justify-center md:gap-12">
           
           {/* Left content */}
           <div className="flex-1 text-center md:text-left pt-20 md:pt-0">
@@ -51,7 +53,7 @@ export default function Home() {
 
 
           {/* App mockup */}
-          <div className="mt-12 flex-1 md:mt-0">
+          <div className="flex-1">
             <Image
               src="/bb-mockup.png"
               alt="Bill Breaker App Preview"
@@ -68,19 +70,20 @@ export default function Home() {
         <section
           className="
             relative mt-20
-              bg-slate-900
-              dark:bg-slate-100
+            bg-slate-900
+            dark:bg-slate-100
           "
         >
           {/* diagonal divider */}
           <div
             className="
-              absolute -top-12 left-0 h-12 w-full
+              absolute -top-14 left-0
+              h-14 w-full
               bg-slate-900
               dark:bg-slate-100
             "
             style={{
-              clipPath: "polygon(0 100%, 100% 0, 100% 100%, 0 100%)",
+              clipPath: "polygon(0 100%, 100% 0, 100% 110%, 0 110%)",
             }}
           />
           <div className="mx-auto grid max-w-5xl gap-6 px-6 py-20 md:grid-cols-3">
@@ -121,12 +124,12 @@ function Feature({
   description: string;
 }) {
   return (
-    <div className="rounded-xl border dark:border-slate-200 p-6 border-slate-800">
-      <h3 className="text-xl font-extrabold dark:text-black text-white">
+    <div className="rounded-xl p-6 border-[1px] border-black/25 dark:border-black/10 shadow-[10px_10px_20px_rgba(0,0,0,0.15)]">
+      <h3 className="text-md md:text-lg font-extrabold dark:text-black text-white">
         {title}
       </h3>
 
-      <p className="mt-3 dark:text-slate-600 text-slate-300">
+      <p className="text-sm md:text-md mt-3 dark:text-slate-600 text-slate-300">
         {description}
       </p>
     </div>
