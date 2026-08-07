@@ -273,13 +273,10 @@ export default function NewReceiptPage() {
       )}
 
       <main className="mx-auto w-full max-w-md space-y-6">
-        <section className="space-y-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-            New receipt
-          </p>
-          <h1 className="text-3xl font-semibold">Create receipt</h1>
-          <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Upload a receipt image and capture the totals for later splitting.
+        <section className="space-y-2 py-5">
+          <h1 className="text-3xl text-center font-semibold">Scan receipt</h1>
+          <p className="text-sm text-center text-slate-600 dark:text-slate-400">
+            Upload or take photo of a receipt to automatically capture the receipt items and total for later splitting.
           </p>
         </section>
 
