@@ -10,7 +10,51 @@ export default function Home() {
       </div>
       <main className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-white">
         {/* Hero */}
-        <section className="mx-auto flex max-w-6xl flex-col items-center justify-start px-6 pt-20 md:min-h-screen md:flex-row md:items-center md:justify-center md:gap-12">
+        <section className="mx-auto flex max-w-6xl flex-col items-center justify-start px-6 pt-20 md:min-h-[70vh] md:flex-row md:items-center md:justify-center md:gap-12">
+          {/* Abstract background shapes */}
+          <div
+            className="
+              pointer-events-none absolute
+              -left-20 -top-10
+              h-72 w-72
+              rounded-full
+              bg-purple-200/30
+              blur-3xl
+              dark:bg-purple-400/20
+              md:left-1/2 md:top-0
+              md:h-96 md:w-96
+              md:-translate-x-[140%]
+            "
+          />
+
+          <div
+            className="
+              pointer-events-none absolute
+              -right-20 top-40
+              h-80 w-80
+              rounded-full
+              bg-blue-200/30
+              blur-3xl
+              dark:bg-blue-400/20
+              md:left-1/2 md:right-auto
+              md:top-20
+              md:h-[420px] md:w-[420px]
+              md:translate-x-[80%]
+            "
+          />
+
+          <div
+            className="
+              pointer-events-none absolute
+              bottom-40 left-1/2
+              h-80 w-80
+              -translate-x-1/2
+              rounded-full
+              bg-pink-200/30
+              blur-3xl
+              dark:bg-pink-400/30
+            "
+          />
           
           {/* Left content */}
           <div className="flex-1 text-center md:text-left pt-20 md:pt-0">
