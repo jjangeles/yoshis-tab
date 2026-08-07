@@ -7,12 +7,11 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
 
   return (
     <>
-      <main className="mx-auto min-h-screen max-w-3xl bg-slate-50 px-0 py-3 pb-28 text-slate-950 dark:bg-slate-950 dark:text-slate-50 sm:px-0">
+      <Header />
+
+      <main className="mx-auto min-h-screen max-w-3xl bg-slate-50 px-0 py-3 pb-28 md:pt-16 md:pb-0 text-slate-950 dark:bg-slate-950 dark:text-slate-50 sm:px-0">
         <div className="px-5">{children}</div>
       </main>
-
-      {/* Render Header outside constrained containers */}
-      <Header />
     </>
   );
 }

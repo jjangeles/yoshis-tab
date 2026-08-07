@@ -15,6 +15,7 @@ import {
 
 import { useTheme } from "@/components/theme/ThemeProvider";
 import LogoutButton from "../auth/LogoutButton";
+import Image from "next/image";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -50,33 +51,71 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed bottom-0 left-0 right-0 z-20 border-t border-slate-200/80 bg-white/90 backdrop-blur dark:border-slate-700/80 dark:bg-slate-950/95">
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-4 pb-8">
-        <Link href="/" />
+    <header
+      className="
+        fixed bottom-0 left-0 z-50 w-full border-t border-slate-200 bg-white/80 backdrop-blur
+        dark:border-slate-800 dark:bg-slate-950/80
 
-        <div className="relative flex w-full items-center justify-center gap-3">
+        md:top-0 md:bottom-auto md:border-t-0 md:border-b
+      "
+    >
+      <div className="mx-auto flex h-16 max-w-5xl items-center px-4">
+        <div className="relative flex w-full items-center justify-center gap-3 md:justify-end">
+          <div className="hidden md:block absolute left-0">
+            <Image
+              src={theme === "dark" ? "/bb-white.png" : "/bb-black.png"}
+              alt="App logo"
+              width={250}
+              height={40}
+              className="rounded-xl"
+              priority
+            />
+          </div>
+
           <Link
             href="/"
-            className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            className="
+              flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2
+              text-white transition hover:bg-slate-800
+              dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200
+            "
           >
-            <Home className="h-5 w-10" />
+            <Home className="h-5 w-5" />
+            <span className="hidden md:inline">Home</span>
           </Link>
 
           <Link
             href="/receipts/new"
-            className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            className="
+              flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2
+              text-white transition hover:bg-slate-800
+              dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200
+            "
           >
-            <Plus className="h-5 w-10" />
+            <Plus className="h-5 w-5" />
+            <span className="hidden md:inline">New Receipt</span>
           </Link>
 
           <Link
             href="/participants"
-            className="rounded-full bg-slate-950 px-4 py-2 text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200"
+            className="
+              flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2
+              text-white transition hover:bg-slate-800
+              dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-slate-200
+            "
           >
-            <Users className="h-5 w-10" />
+            <Users className="h-5 w-5" />
+            <span className="hidden md:inline">Participants</span>
           </Link>
 
-          <div className="absolute right-0" ref={menuRef}>
+
+          <div
+            className="
+              absolute right-0
+              md:static
+            "
+            ref={menuRef}
+          >
             <button
               onClick={() => setOpen((prev) => !prev)}
               className="rounded-full p-2 transition hover:bg-slate-200 dark:hover:bg-slate-800"
@@ -85,7 +124,15 @@ export default function Header() {
             </button>
 
             {open && (
-              <div className="absolute bottom-12 right-0 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+              <div
+                className="
+                  absolute right-0 bottom-12
+                  md:top-12 md:bottom-auto
+                  w-52 overflow-hidden rounded-xl border border-slate-200
+                  bg-white shadow-xl
+                  dark:border-slate-700 dark:bg-slate-900
+                "
+              >
                 <Link
                   href="/profile"
                   onClick={() => setOpen(false)}
