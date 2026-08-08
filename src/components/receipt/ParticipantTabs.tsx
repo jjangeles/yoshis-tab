@@ -6,7 +6,7 @@ import {
   exportAllParticipantsSummaryImage,
 } from "@/lib/receiptExporter";
 import { Download, AlertTriangle } from "lucide-react";
-import Link from "next/link";
+import Fraction from "fraction.js";
 
 interface ParticipantTabsProps {
   merchantName?: string | null;
@@ -100,6 +100,12 @@ export default function ParticipantTabs({
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const getFraction = (shareCost: number, totalCost: number) => {
+    if (totalCost <= 0) return "0";
+
+    return new Fraction(shareCost / totalCost).toFraction();
   };
 
   return (
@@ -204,7 +210,7 @@ export default function ParticipantTabs({
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {item.type === "misc" && (
                           <span className="mr-2 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800 dark:bg-green-950/60 dark:text-green-300">
-                            {item.misc_calc_type == 'even' ? 'EVEN' : 'RELATIVE'}
+                            {item.misc_calc_type == 'EVEN' ? 'EVEN' : 'RELATIVE'}
                           </span>
                         )}
                         {item.type === "misc" ? (
@@ -221,7 +227,7 @@ export default function ParticipantTabs({
                           </>
                         ) : (
                           <>
-                            {item.quantity} x ₱
+                            {getFraction(item.shareCost, item.unitPrice)} x ₱
                             {item.unitPrice.toLocaleString("en-PH", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,

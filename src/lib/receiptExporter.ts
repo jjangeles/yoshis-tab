@@ -1,3 +1,5 @@
+import Fraction from "fraction.js";
+
 export interface ItemShare {
   itemId: number;
   itemName: string;
@@ -34,6 +36,12 @@ function createRetinaCanvas(width: number, height: number, scale = 2) {
     ctx.scale(scale, scale);
   }
   return { canvas, ctx };
+}
+
+function getFraction(shareCost: number, totalCost: number): string {
+  if (totalCost <= 0) return "0";
+
+  return new Fraction(shareCost / totalCost).toFraction();
 }
 
 /**
@@ -204,9 +212,17 @@ export async function exportSingleParticipantImage(
       ctx.fillStyle = "#71717a"; // Zinc 500
       ctx.font = "400 13px system-ui, -apple-system, sans-serif";
 
-      let subText = `${item?.quantity || 1} x ₱${(item?.unitPrice || 0).toFixed(2)}`;
+      let subText = ''
       if (item?.type === "misc") {
         subText = `${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
+      } else {
+        subText = `${getFraction(
+          shareCost,
+          item?.unitPrice || 0
+        )} x ₱${(item?.unitPrice || 0).toLocaleString("en-PH", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
       }
       ctx.fillText(subText, padding, y + 34);
 
@@ -396,9 +412,17 @@ export async function exportAllParticipantsSummaryImage(
 
           ctx.fillStyle = "#71717a";
           ctx.font = "400 12px system-ui, -apple-system, sans-serif";
-          let subText = `${item?.quantity || 1} x ₱${(item?.unitPrice || 0).toFixed(2)}`;
+          let subText = ''
           if (item?.type === "misc") {
             subText = `${percentageShare.toFixed(0)}% of ₱${totalPrice.toFixed(2)}`;
+          } else {
+            subText = `${getFraction(
+              shareCost,
+              item?.unitPrice || 0
+            )} x ₱${(item?.unitPrice || 0).toLocaleString("en-PH", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}`;
           }
           ctx.fillText(subText, cardX + cardPadding, innerY + 28);
 
