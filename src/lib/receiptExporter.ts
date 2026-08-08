@@ -44,10 +44,25 @@ function getFraction(shareCost: number, totalCost: number): string {
   return new Fraction(shareCost / totalCost).toFraction();
 }
 
+async function copyImageToClipboard(blob: Blob): Promise<void> {
+  if (!navigator.clipboard || !window.ClipboardItem) {
+    throw new Error("Image clipboard is not supported");
+  }
+
+  const clipboardItem = new ClipboardItem({
+    "image/png": blob,
+  });
+
+  await navigator.clipboard.write([clipboardItem]);
+}
+
 /**
  * Triggers browser download/share compatible with iOS WebKit and Desktop browsers.
  */
-function triggerDownload(canvas: HTMLCanvasElement, baseFilename: string): Promise<void> {
+function triggerDownload(
+  canvas: HTMLCanvasElement,
+  baseFilename: string
+): Promise<void> {
   return new Promise((resolve) => {
     const timestamp = Date.now();
     const filename = baseFilename.replace(".png", `-${timestamp}.png`);
@@ -67,6 +82,7 @@ function triggerDownload(canvas: HTMLCanvasElement, baseFilename: string): Promi
       } catch (e) {
         console.error("Fallback download failed:", e);
       }
+
       resolve();
     };
 
@@ -77,35 +93,50 @@ function triggerDownload(canvas: HTMLCanvasElement, baseFilename: string): Promi
           return;
         }
 
-        const file = new File([blob], filename, { type: "image/png" });
+        const file = new File([blob], filename, {
+          type: "image/png",
+        });
 
         // Mobile iOS/Android Web Share
-        if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (
+          isMobile &&
+          navigator.canShare &&
+          navigator.canShare({ files: [file] })
+        ) {
           try {
             await navigator.share({
               files: [file],
               title: "Receipt Breakdown",
             });
+
             resolve();
             return;
           } catch (err: any) {
+            // User cancelled the share sheet.
             if (err.name === "AbortError") {
               resolve();
               return;
             }
+
+            console.error("Share failed:", err);
           }
         }
 
         // Desktop standard download
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement("a");
+
         link.download = filename;
         link.href = blobUrl;
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        setTimeout(() => {
+          URL.revokeObjectURL(blobUrl);
+        }, 1000);
+
         resolve();
       }, "image/png");
     } catch (err) {
@@ -114,6 +145,7 @@ function triggerDownload(canvas: HTMLCanvasElement, baseFilename: string): Promi
     }
   });
 }
+
 
 /**
  * Renders and downloads a single participant's receipt card
