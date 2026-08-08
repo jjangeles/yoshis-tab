@@ -266,28 +266,23 @@ export default function ParticipantTabs({
               <button
                 key={p.id}
                 type="button"
-                onClick={() =>
-                  setActiveTabId(p.id)
-                }
-                className={`min-w-[5rem] shrink-0 rounded-md px-1 py-1.5 text-xs font-semibold transition-all ${
+                onClick={() => setActiveTabId(p.id)}
+                className={`w-[5rem] max-w-[5rem] shrink-0 rounded-md px-1 py-1.5 text-xs font-semibold transition-all ${
                   isActive
                     ? "bg-slate-950 text-white dark:bg-slate-50 dark:text-slate-950"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 }`}
               >
-                <p className="font-semibold">
+                <p className="truncate whitespace-nowrap">
                   {p.name}
                 </p>
 
                 <p className="text-[10px]">
                   ₱
-                  {share?.totalShareCost.toLocaleString(
-                    "en-PH",
-                    {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }
-                  )}
+                  {share?.totalShareCost.toLocaleString("en-PH", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </p>
               </button>
             );
