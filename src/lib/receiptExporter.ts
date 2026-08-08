@@ -165,7 +165,6 @@ function triggerDownload(
             try {
               await navigator.share({
                 files: [file],
-                title: "Receipt Breakdown",
               });
 
               resolve();
