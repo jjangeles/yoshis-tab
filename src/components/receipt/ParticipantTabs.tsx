@@ -155,7 +155,7 @@ export default function ParticipantTabs({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-[2rem] bg-white/95 p-5 shadow-sm shadow-slate-900/5 dark:bg-slate-900/95">
       {/* Amber Warning for Unassigned Items */}
       {hasUnassignedItems && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
@@ -296,24 +296,13 @@ export default function ParticipantTabs({
           {shares.map((participant) => (
             <div
               key={participant.participantId}
-              className="space-y-3 border p-2 px-4 rounded-xl border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-slate-950/20"
+              className="space-y-3 border p-2 px-4 rounded-xl bg-slate-300/5 border-slate-200/30 dark:border-slate-800 shadow-xs dark:shadow-slate-950/20"
             >
               {/* Participant Header */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-950 dark:text-slate-50">
+              <div className="flex items-center justify-center">
+                <h3 className="text-2xl font-extrabold text-slate-950 dark:text-slate-50">
                   {participant.participantName}
                 </h3>
-
-                <span className="text-sm font-bold text-slate-950 dark:text-slate-50">
-                  ₱
-                  {participant.totalShareCost.toLocaleString(
-                    "en-PH",
-                    {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }
-                  )}
-                </span>
               </div>
 
               {/* Participant Items */}
@@ -430,12 +419,12 @@ export default function ParticipantTabs({
           ))}
 
           {/* Grand Total */}
-          <div className="flex items-center justify-between border-t-2 border-slate-300 pt-4 dark:border-slate-700">
-            <p className="text-2xl font-semibold text-slate-950 dark:text-slate-50">
+          <div className="px-4 flex items-center justify-between border-slate-300 pt-4 dark:border-slate-700">
+            <p className="text-xl font-semibold text-slate-950 dark:text-slate-50">
               Total
             </p>
 
-            <p className="text-xl font-bold text-slate-950 dark:text-slate-50">
+            <p className="text-2xl font-bold text-slate-950 dark:text-slate-50">
               ₱
               {grandTotal.toLocaleString("en-PH", {
                 minimumFractionDigits: 2,
