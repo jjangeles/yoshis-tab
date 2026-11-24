@@ -18,11 +18,11 @@ export default function ParticipantsPage() {
   useEffect(() => {
     const getParticipants = async () => {
       const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-      if (sessionError || !session?.user) {
+      if (userError || !user) {
         setError("Unable to verify current user.");
         return;
       }
@@ -30,7 +30,7 @@ export default function ParticipantsPage() {
       const { data, error: participantsError } = await supabase
         .from("participants")
         .select("*")
-        .eq("user_id", session.user.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (participantsError) {
@@ -55,17 +55,17 @@ export default function ParticipantsPage() {
 
     setLoading(true);
 
-    const sessionResult = await supabase.auth.getSession();
-    const session = sessionResult.data?.session;
+    const userResult = await supabase.auth.getUser();
+    const user = userResult.data?.user;
 
-    if (sessionResult.error || !session?.user) {
+    if (userResult.error || !user) {
       setError("Unable to verify current user.");
       setLoading(false);
       return;
     }
     
     const participantPayload = {
-      user_id: session.user.id,
+      user_id: user.id,
       name: participantName,
     };
 

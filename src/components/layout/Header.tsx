@@ -38,8 +38,10 @@ export default function Header() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(() => {
+      queueMicrotask(() => {
+        void checkAuth();
+      });
     });
 
     return () => {

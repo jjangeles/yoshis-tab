@@ -118,10 +118,10 @@ export default function NewReceiptPage() {
     setUploadProgress(10);
 
     const supabase = createBrowserSupabase();
-    const sessionResult = await supabase.auth.getSession();
-    const session = sessionResult.data?.session;
+    const userResult = await supabase.auth.getUser();
+    const user = userResult.data?.user;
 
-    if (sessionResult.error || !session?.user) {
+    if (userResult.error || !user) {
       setError("Unable to verify current user.");
       setLoading(false);
       return;
@@ -134,7 +134,7 @@ export default function NewReceiptPage() {
     const parsedTotal = Number(total || 0);
 
     const receiptPayload = {
-      owner_id: session.user.id,
+      owner_id: user.id,
       merchant_name: merchantName || null,
       receipt_date: receiptDate || null,
       subtotal: parsedSubtotal,
@@ -169,7 +169,7 @@ export default function NewReceiptPage() {
     setUploadProgress(40);
 
     const filename = encodeURIComponent(imageFile.name.replace(/\s+/g, "_"));
-    const storagePath = `receipts/${session.user.id}/${receiptId}/${filename}`;
+    const storagePath = `receipts/${user.id}/${receiptId}/${filename}`;
 
     const { error: uploadError } = await supabase.storage
       .from("receipt-images")

@@ -4,13 +4,13 @@ import { createServerSupabase } from "@/lib/supabase/server";
 export async function getCurrentUser() {
   const supabase = await createServerSupabase();
   const {
-    data: { session },
+    data: { user },
     error,
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getUser();
 
-  if (error || !session?.user) {
+  if (error || !user) {
     redirect("/login");
   }
 
-  return session.user;
+  return user;
 }
