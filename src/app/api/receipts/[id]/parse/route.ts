@@ -11,11 +11,11 @@ export async function POST(
   const { id: receiptId } = await context.params;
 
   const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (sessionError || !session?.user) {
+  if (userError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,7 +29,7 @@ export async function POST(
     return NextResponse.json({ error: "Receipt not found." }, { status: 404 });
   }
 
-  if (receipt.owner_id !== session.user.id) {
+  if (receipt.owner_id !== user.id) {
     return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   }
 
